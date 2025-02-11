@@ -600,7 +600,7 @@ let agreeCheckbox = document.getElementById('agreeCheckbox');
         }
 
         function startCountdown() {
-            countdown = 45;
+            countdown = 3;
             countdownPopup.style.display = "block";
             countdownTimer.innerText = `Returning in: ${countdown}s`;
 
@@ -610,7 +610,7 @@ let agreeCheckbox = document.getElementById('agreeCheckbox');
 
                 if (countdown <= 0) {
                     clearInterval(timer);
-                    submitExam();
+                    submitFullExam();
                 }
             }, 1000);
         }
@@ -912,7 +912,7 @@ async function submitFullExam() {
 
         const result = await response.json();
         if (result.success) {
-            window.location.href = 'student-mocktests.html';
+            window.location.href = 'ratingpage.html';
         } else {
             alert('Failed to submit exam: ' + result.error);
         }

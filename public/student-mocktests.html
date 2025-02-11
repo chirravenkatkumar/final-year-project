@@ -35,6 +35,66 @@ h1 {
     margin-bottom: 1.5rem;
 }
 
+.navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #002b5b;
+            color: white;
+            padding: 10px 20px;
+            font-style: italic;
+            font-size: 30px;
+            
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: white;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        .navbar a.home {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            text-decoration: underline;
+            font-size: 20px;
+        }
+
+        .navbar .email {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            font-size: 20px;
+        }
+
+        .logout-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s ease-in-out;
+    
+    /* White glow effect */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 
+                0 0 20px rgba(255, 255, 255, 0.6), 
+                0 0 30px rgba(255, 255, 255, 0.4);
+}
+
+/* Glow effect on hover */
+.logout-btn:hover {
+    background-color: #dc3545;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 1), 
+                0 0 25px rgba(255, 255, 255, 0.9), 
+                0 0 35px rgba(255, 255, 255, 0.7);
+}
+
 .tab-buttons {
     display: flex;
     justify-content: center;
@@ -198,6 +258,13 @@ h1 {
 <body>
     <div class="container">
         <header>
+            <div class="background-image"></div>
+            <div class="navbar">
+                <a href="#">Student EduFlow</a>
+                <span class="email"></span>
+                <a class="support" href="#">Support</a>
+                <button class="logout-btn" onclick="window.location.href='index.html'">Logout</button>
+            </div>
             <h1>Exam Panel</h1>
             <div class="tab-buttons">
                 <button id="activeExamsBtn" class="active" onclick="switchTab('active')">Active Exams</button>
@@ -226,6 +293,16 @@ h1 {
         const activeExamsList = document.getElementById('active-exams');
         const completedExamsList = document.getElementById('completed-exams');
         const modal = document.getElementById('modal');
+
+        const emailSpan = document.querySelector(".email"); // Select the email span
+
+// Set the email from local storage
+const email = localStorage.getItem('email'); // Assuming the email is stored with the key 'email'
+if (email) {
+    emailSpan.textContent = email; // Set the email span text
+} else {
+    emailSpan.textContent = "Email not found"; // Fallback if email is not in local storage
+}
 
         // Switch tabs
         function switchTab(type) {

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Your Experience</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .rating-container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .rating-options {
+            display: flex;
+            justify-content: space-around;
+            margin: 1rem 0;
+        }
+        .rating-option {
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .rating-option:hover {
+            transform: scale(1.2);
+        }
+        .check-button {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #4299e1;
+            color: white;
+            cursor: pointer;
+        }
+        .check-button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="rating-container">
+        <h2>Rate Your Exam Experience</h2>
+        <div class="rating-options">
+            <div class="rating-option" data-rating="excellent">😊</div>
+            <div class="rating-option" data-rating="good">😐</div>
+            <div class="rating-option" data-rating="average">😕</div>
+            <div class="rating-option" data-rating="poor">😠</div>
+        </div>
+        <button class="check-button" disabled>Check</button>
+    </div>
+
+    <script>
+        const ratingOptions = document.querySelectorAll('.rating-option');
+        const checkButton = document.querySelector('.check-button');
+        let selectedRating = null;
+
+        // Handle rating selection
+        ratingOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove active class from all options
+                ratingOptions.forEach(opt => opt.classList.remove('active'));
+                // Add active class to the selected option
+                option.classList.add('active');
+                // Enable the Check button
+                checkButton.disabled = false;
+                // Store the selected rating
+                selectedRating = option.dataset.rating;
+            });
+        });
+
+        // Handle Check button click
+        checkButton.addEventListener('click', () => {
+            if (selectedRating) {
+                // Send the rating to the server (optional)
+                console.log('Selected Rating:', selectedRating);
+                // Redirect to student-mocktests.html
+                window.location.href = 'student-mocktests.html';
+            }
+        });
+    </script>
+</body>
+</html>
