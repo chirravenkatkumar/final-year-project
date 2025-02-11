@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -103,7 +104,7 @@
 
         .question-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
 
         .question-btn.active {
@@ -319,7 +320,7 @@
             border-radius: 8px;
             font-size: 20px;
             font-weight: bold;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             z-index: 1000;
         }
 
@@ -330,13 +331,164 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
+
+        .guidelines-container {
+            width: 80%;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
+        }
+        .guidelines-container h2 {
+            color: #333;
+        }
+        .guidelines-container ul {
+            text-align: left;
+            list-style-type: disc;
+            padding-left: 40px;
+        }
+        .checkbox-container {
+            margin: 20px 0;
+        }
+        .start-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+        .start-btn:disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+        .countdown-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+        .countdown-popup .close-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .exam-container {
+            display: none;
+        }
+        .navbar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .question-nav {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            background: #ddd;
+        }
+        .container {
+            display: flex;
+            padding: 20px;
+        }
+        .left-panel {
+            width: 50%;
+            padding: 10px;
+        }
+        .right-panel {
+            width: 50%;
+            padding: 10px;
+        }
+        .editor-controls {
+            margin-bottom: 10px;
+        }
+        .output-section {
+            margin-top: 10px;
+        }
+
+        .footer-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: flex-start; /* Align left */
+        align-items: center;
+    }
+
+    .submit-full-exam-btn {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-left: 10px; /* Small margin from the left */
+    }
     </style>
 </head>
+
 <body>
+<!-- Exam Guidelines Section -->
+<div class="guidelines-container" id="guidelines">
+    <h2>Exam Guidelines</h2>
+    <ul>
+        <li>➢ Close all browsers/tabs before starting the Online Test.</li>
+        <li>➢ Once the test starts, do not switch to any other window. On doing so, your attempt may be considered as malpractice and your test may get terminated.</li>
+        <li>➢ To avoid unwanted pop-ups, use of Ad Blocker is recommended.</li>
+    </ul>
+
+    <div class="checkbox-container">
+        <input type="checkbox" id="agreeCheckbox"> I Agree to all and Continue
+    </div>
+
+    <button class="start-btn" id="startExamBtn" disabled>Start Exam</button>
+</div>
+
+<!-- Countdown Popup -->
+<div class="countdown-popup" id="countdownPopup">
+    <div id="countdownTimer">Returning in: 45s</div>
+    <button class="close-btn" id="closePopupBtn">Close</button>
+</div>
+
+<!-- Exam Interface -->
+<div class="exam-container" id="exam-container">
     <div class="navbar">
         <a href="#">Student EduFlow</a>
         <span id="exam-info"></span>
@@ -382,178 +534,120 @@
             </div>
         </div>
     </div>
+<div class="footer-bar">
+    <button class="submit-full-exam-btn" id="submit-full-exam">Submit</button>
+</div>
+</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script>
-        let editor;
-        let examData = null;
-        let currentQuestionIndex = 0;
-        let attemptedQuestions = new Set();
-        let examEndTime = null;
-        let twotestcases = false;
+let editors = new Map();  // Store separate CodeMirror instances for each question
+let examData = null;
+let currentQuestionIndex = 0;
+let attemptedQuestions = new Set();
+let examEndTime = null;
+let twotestcases = false;
+let agreeCheckbox = document.getElementById('agreeCheckbox');
+        let startExamBtn = document.getElementById('startExamBtn');
+        let guidelines = document.getElementById('guidelines');
+        let examContainer = document.getElementById('exam-container');
+        let countdownPopup = document.getElementById('countdownPopup');
+        let countdownTimer = document.getElementById('countdownTimer');
+        let closePopupBtn = document.getElementById('closePopupBtn');
+        let timer = null, countdown = 45;
 
-        const emailSpan = document.querySelector(".email");
-        const email = localStorage.getItem('email');
-        if (email) {
-            emailSpan.textContent = email;
-        } else {
-            emailSpan.textContent = "Email not found";
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            editor = CodeMirror(document.getElementById('editor-container'), {
-                mode: 'text/x-c++src',
-                theme: 'monokai',
-                lineNumbers: true,
-                autoCloseBrackets: true,
-                matchBrackets: true,
-                indentUnit: 4,
-                tabSize: 4,
-                indentWithTabs: true,
-                lineWrapping: true
-            });
-
-            editor.setSize('100%', '100%');
-            await initializeExam();
-
-            document.getElementById('language-select').addEventListener('change', handleLanguageChange);
-            document.getElementById('run-btn').addEventListener('click', runCode);
-            document.getElementById('submit-btn').addEventListener('click', submitSolution);
-
-            document.querySelectorAll('.tab-btn').forEach(button => {
-                button.addEventListener('click', () => switchTab(button.dataset.tab));
-            });
+        agreeCheckbox.addEventListener('change', function() {
+            startExamBtn.style.display = this.checked ? "block" : "none";
+            startExamBtn.disabled = !this.checked;
         });
 
-        async function initializeExam() {
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const examId = urlParams.get('taskId');
-                
-                const response = await fetch(`http://localhost:3000/api/exam/${examId}`);
-                examData = await response.json();
-                console.log('Exam Data:', examData);
-                document.getElementById('exam-info').textContent = 
-                    `${examData.examName} - ${examData.branch} Year ${examData.year}`;
-                
-// Convert examTime (in minutes) to milliseconds and set the end time
-const examDurationMs = parseInt(examData.examTime) * 60 * 1000;
-                examEndTime = new Date(Date.now() + examDurationMs);
-                startTimer();
-                
-                createQuestionNav();
-                loadQuestion(0);
+        startExamBtn.addEventListener('click', function() {
+            startExam();
+        });
 
-                // Load last saved code if exists
-                try {
-                    const codeResponse = await fetch('http://localhost:3000/api/get-latest-code', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            Username: email, 
-                            examId: examId,
-                            questionId: examData.questions[0].id 
-                        })
-                    });
+        function startExam() {
+            guidelines.style.display = "none";
+            examContainer.style.display = "block";
+            openFullscreen();
+        }
 
-                    const data = await codeResponse.json();
-                    if (data.success) {
-                        editor.setValue(data.code);
-                        document.getElementById('language-select').value = data.language;
-                        editor.setOption("mode", getModeForLanguage(data.language));
-                    }
-                } catch (error) {
-                    console.error("Error fetching saved code:", error);
-                }
-            } catch (error) {
-                console.error('Error initializing exam:', error);
+        function openFullscreen() {
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
             }
         }
 
-        function createQuestionNav() {
-            const nav = document.getElementById('question-nav');
-            examData.questions.forEach((_, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'question-btn';
-                btn.textContent = index + 1;
-                btn.onclick = () => loadQuestion(index);
-                nav.appendChild(btn);
-            });
+        document.addEventListener("fullscreenchange", fullscreenExitHandler);
+        document.addEventListener("mozfullscreenchange", fullscreenExitHandler);
+        document.addEventListener("webkitfullscreenchange", fullscreenExitHandler);
+        document.addEventListener("msfullscreenchange", fullscreenExitHandler);
+
+        function fullscreenExitHandler() {
+            if (!document.fullscreenElement) {
+                startCountdown();
+            } else {
+                resetCountdown();
+            }
         }
 
-        function loadQuestion(index) {
-            currentQuestionIndex = index;
-            const question = examData.questions[index];
-            
-            document.getElementById('question-title').textContent = 
-                `Question ${index + 1}: ${question.question}`;
-            document.getElementById('question-description').innerHTML = 
-                question.description;
-            
-            const testCasesHtml = question.testCases.map((testCase, i) => `
-                <div class="test-case-display">
-                    <strong>Test Case ${i + 1}:</strong>
-                    <pre>Input: ${testCase.input}</pre>
-                    <pre>Expected Output: ${testCase.output}</pre>
-                </div>
-            `).join('');
-            document.getElementById('test-cases-container').innerHTML = testCasesHtml;
-            
-            document.querySelectorAll('.question-btn').forEach((btn, i) => {
-                btn.classList.toggle('active', i === index);
-            });
-        }
+        function startCountdown() {
+            countdown = 45;
+            countdownPopup.style.display = "block";
+            countdownTimer.innerText = `Returning in: ${countdown}s`;
 
-        function startTimer() {
-            function updateTimer() {
-                const now = new Date();
-                const timeLeft = examEndTime - now;
-                console.log(timeLeft)
-                if (timeLeft <= 0) {
+            timer = setInterval(() => {
+                countdown--;
+                countdownTimer.innerText = `Returning in: ${countdown}s`;
+
+                if (countdown <= 0) {
+                    clearInterval(timer);
                     submitExam();
-                    return;
                 }
-                
-                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                
-                const timerElement = document.getElementById('timer');
-                timerElement.textContent = 
-                    `Time Remaining: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                
-                if (timeLeft < 300000) {
-                    timerElement.classList.add('warning');
-                }
-            }
-            
-            updateTimer();
-            setInterval(updateTimer, 1000);
+            }, 1000);
         }
 
-        function handleLanguageChange(event) {
-            const language = event.target.value;
-            const modeMap = {
-                'cpp': 'text/x-c++src',
-                'c': 'text/x-csrc',
-                'java': 'text/x-java',
-                'python': 'python'
-            };
-            editor.setOption('mode', modeMap[language]);
+        function resetCountdown() {
+            clearInterval(timer);
+            countdownPopup.style.display = "none";
         }
 
-        function getModeForLanguage(language) {
-            const modes = {
-                javascript: "javascript",
-                python: "python",
-                java: "text/x-java",
-                cpp: "text/x-c++src",
-                c: "text/x-csrc"
-            };
-            return modes[language] || "plaintext";
-        }
+
+        closePopupBtn.addEventListener('click', function() {
+            resetCountdown();
+            openFullscreen();
+        });
+
+
+
+const emailSpan = document.querySelector(".email");
+const email = localStorage.getItem('email');
+if (email) {
+    emailSpan.textContent = email;
+} else {
+    emailSpan.textContent = "Email not found";
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await initializeExam();
+
+    document.getElementById('language-select').addEventListener('change', handleLanguageChange);
+    document.getElementById('run-btn').addEventListener('click', runCode);
+    document.getElementById('submit-btn').addEventListener('click', submitSolution);
+    document.getElementById('submit-full-exam').addEventListener('click', submitFullExam);
+
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
+});
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -566,143 +660,267 @@ const examDurationMs = parseInt(examData.examTime) * 60 * 1000;
             document.getElementById(tabId).classList.add('active');
         }
 
-        async function runCode() {
-            const code = editor.getValue();
-            const language = document.getElementById('language-select').value;
-            const question = examData.questions[currentQuestionIndex];
+async function initializeExam() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const examId = urlParams.get('taskId');
 
-            document.getElementById('output').textContent = 'Running code...';
-            document.getElementById('test-results').textContent = 'Running tests...';
+        const response = await fetch(`http://localhost:3000/api/exam/${examId}`);
+        examData = await response.json();
+        console.log('Exam Data:', examData);
+        document.getElementById('exam-info').textContent =
+            `${examData.examName} - ${examData.branch} Year ${examData.year}`;
 
-            try {
-                const results = await Promise.all(question.testCases.map(async (testCase, index) => {
-                    const response = await fetch('http://localhost:3000/api/run', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ code, language, input: testCase.input })
-                    });
-                    const result = await response.json();
-                    return {
-                        testNumber: index + 1,
-                        passed: result.output.trim() === testCase.output.trim(),
-                        input: testCase.input,
-                        expectedOutput: testCase.output,
-                        actualOutput: result.output,
-                        error: result.error,
-                        comparison: compareOutputs(testCase.output, result.output)
-                    };
-                }));
+        const examDurationMs = parseInt(examData.examTime) * 60 * 1000;
+        examEndTime = new Date(Date.now() + examDurationMs);
+        startTimer();
 
-                twotestcases = results.every(result => result.passed);
-                displayTestResults(results);
+        createQuestionNav();
+        loadQuestion(0);
+    } catch (error) {
+        console.error('Error initializing exam:', error);
+    }
+}
 
-                const outputDiv = document.getElementById('output');
-                if (results[0].error) {
-                    outputDiv.innerHTML = `<pre class="error">${results[0].error}</pre>`;
-                } else {
-                    outputDiv.innerHTML = `<pre>${results[0].actualOutput}</pre>`;
-                }
-            } catch (error) {
-                console.error('Error running code:', error);
-                document.getElementById('output').innerHTML = `<pre class="error">Error running code: ${error.message}</pre>`;
-                document.getElementById('test-results').innerHTML = `<pre class="error">Error running tests: ${error.message}</pre>`;
-            }
-        }
+function createQuestionNav() {
+    const nav = document.getElementById('question-nav');
+    examData.questions.forEach((_, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'question-btn';
+        btn.textContent = index + 1;
+        btn.onclick = () => loadQuestion(index);
+        nav.appendChild(btn);
+    });
+}
 
-        function compareOutputs(expected, actual) {
-            const expectedLines = expected.trim().split('\n');
-            const actualLines = actual.trim().split('\n');
-            return expectedLines.map((expected, i) => {
-                const actual = actualLines[i] || '';
-                return { expected, actual, matches: expected === actual };
+async function loadQuestion(index) {
+    currentQuestionIndex = index;
+    const question = examData.questions[index];
+
+    document.getElementById('question-title').textContent =
+        `Question ${index + 1}: ${question.question}`;
+    document.getElementById('question-description').innerHTML =
+        question.description;
+
+    const testCasesHtml = question.testCases.map((testCase, i) => `
+        <div class="test-case-display">
+            <strong>Test Case ${i + 1}:</strong>
+            <pre>Input: ${testCase.input}</pre>
+            <pre>Expected Output: ${testCase.output}</pre>
+        </div>
+    `).join('');
+    document.getElementById('test-cases-container').innerHTML = testCasesHtml;
+
+    document.querySelectorAll('.question-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+    });
+
+    // if (!editors.has(index)) {
+        const editorContainer = document.getElementById('editor-container');
+        editorContainer.innerHTML = "";  // Clear previous editor
+        const editorElement = document.createElement('textarea');
+        editorElement.id = `editor-${index}`;
+        editorContainer.appendChild(editorElement);
+
+        const newEditor = CodeMirror.fromTextArea(editorElement, {
+            mode: 'text/x-c++src',
+            theme: 'monokai',
+            lineNumbers: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: true,
+            lineWrapping: true
+        });
+
+        newEditor.setSize('100%', '100%');
+        editors.set(index, newEditor);
+
+        try {
+            const codeResponse = await fetch('http://localhost:3000/api/get-exam-latest-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    Username: email,
+                    examId: examData.id,
+                    questionId: question.id
+                })
             });
+
+            const data = await codeResponse.json();
+            console.log(data);
+
+            if (data.success && data.submission) {
+                newEditor.setValue(data.submission.code);
+                document.getElementById('language-select').value = data.submission.language;
+                newEditor.setOption("mode", getModeForLanguage(data.submission.language));
+            } else {
+                console.log("No previous submission found.");
+            }
+        } catch (error) {
+            console.error("Error fetching saved code:", error);
+        }
+    }
+
+
+function startTimer() {
+    function updateTimer() {
+        const now = new Date();
+        const timeLeft = examEndTime - now;
+        if (timeLeft <= 0) {
+            submitExam();
+            return;
         }
 
-        function displayTestResults(results) {
-            const resultsHtml = results.map(result => `
-                <div class="test-case ${result.passed ? 'passed' : 'failed'}">
-                    <h4>Test Case ${result.testNumber}: ${result.passed ? 'Passed ✓' : 'Failed ✗'}</h4>
-                    <pre>Input: ${result.input}</pre>
-                    <pre>Expected Output: ${result.expectedOutput}</pre>
-                    <pre>Actual Output: ${result.actualOutput}</pre>
-                    ${result.error ? `<pre class="error">Error: ${result.error}</pre>` : ''}
-                    ${!result.passed && result.comparison ? `
-                        <div class="comparison">
-                            <h5>Detailed Comparison:</h5>
-                            ${result.comparison.map((line, i) => `
-                                <div class="line-comparison ${line.matches ? 'match' : 'mismatch'}">
-                                    <span>Line ${i + 1}:</span>
-                                    <pre class="expected">Expected: "${line.expected}"</pre>
-                                    <pre class="actual">Actual: "${line.actual}"</pre>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-            document.getElementById('test-results').innerHTML = resultsHtml;
-        }
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
-        async function submitSolution() {
-            const code = editor.getValue();
-            const language = document.getElementById('language-select').value;
-            
-            await runCode();
-            
-            if (twotestcases) {
-                attemptedQuestions.add(currentQuestionIndex);
-                document.querySelectorAll('.question-btn')[currentQuestionIndex]
-                    .classList.add('attempted');
-            }
-            
-            try {
-                const response = await fetch('http://localhost:3000/api/submitexam', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        examId: examData.id,
-                        questionId: examData.questions[currentQuestionIndex].id,
-                        code,
-                        language,
-                        passed: twotestcases,
-                        Username: email
-                    })
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    alert('Solution submitted successfully!');
-                } else {
-                    alert('Failed to submit solution: ' + result.error);
-                }
-            } catch (error) {
-                alert('Error submitting solution: ' + error.message);
-            }
-        }
+        const timerElement = document.getElementById('timer');
+        timerElement.textContent =
+            `Time Remaining: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-        async function submitExam() {
-            try {
-                const response = await fetch('http://localhost:3000/api/submit-exam', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        examId: examData.id,
-                        Username: email,
-                        attemptedQuestions: Array.from(attemptedQuestions)
-                    })
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    alert('Exam submitted successfully!');
-                    window.location.href = 'student.html';
-                } else {
-                    alert('Failed to submit exam: ' + result.error);
-                }
-            } catch (error) {
-                alert('Error submitting exam: ' + error.message);
-            }
+        if (timeLeft < 300000) {
+            timerElement.classList.add('warning');
         }
+    }
+
+    updateTimer();
+    setInterval(updateTimer, 1000);
+}
+
+function handleLanguageChange(event) {
+    const language = event.target.value;
+    editors.get(currentQuestionIndex)?.setOption('mode', getModeForLanguage(language));
+}
+
+function getModeForLanguage(language) {
+    const modes = {
+        javascript: "javascript",
+        python: "python",
+        java: "text/x-java",
+        cpp: "text/x-c++src",
+        c: "text/x-csrc"
+    };
+    return modes[language] || "plaintext";
+}
+
+async function runCode() {
+    const code = editors.get(currentQuestionIndex)?.getValue();
+    const language = document.getElementById('language-select').value;
+    const question = examData.questions[currentQuestionIndex];
+
+    document.getElementById('output').textContent = 'Running code...';
+    document.getElementById('test-results').textContent = 'Running tests...';
+
+    try {
+        const results = await Promise.all(question.testCases.map(async (testCase, index) => {
+            const response = await fetch('http://localhost:3000/api/runexam', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, language, input: testCase.input })
+            });
+            const result = await response.json();
+            return {
+                testNumber: index + 1,
+                passed: result.output.trim() === testCase.output.trim(),
+                input: testCase.input,
+                expectedOutput: testCase.output,
+                actualOutput: result.output,
+                error: result.error
+            };
+        }));
+
+        twotestcases = results.every(result => result.passed);
+        displayTestResults(results);
+
+        const outputDiv = document.getElementById('output');
+        if (results[0].error) {
+            outputDiv.innerHTML = `<pre class="error">${results[0].error}</pre>`;
+        } else {
+            outputDiv.innerHTML = `<pre>${results[0].actualOutput}</pre>`;
+        }
+    } catch (error) {
+        console.error('Error running code:', error);
+        document.getElementById('output').innerHTML = `<pre class="error">Error running code: ${error.message}</pre>`;
+        document.getElementById('test-results').innerHTML = `<pre class="error">Error running tests: ${error.message}</pre>`;
+    }
+}
+
+function displayTestResults(results) {
+    const resultsHtml = results.map(result => `
+        <div class="test-case ${result.passed ? 'passed' : 'failed'}">
+            <h4>Test Case ${result.testNumber}: ${result.passed ? 'Passed ✓' : 'Failed ✗'}</h4>
+            <pre>Input: ${result.input}</pre>
+            <pre>Expected Output: ${result.expectedOutput}</pre>
+            <pre>Actual Output: ${result.actualOutput}</pre>
+            ${result.error ? `<pre class="error">Error: ${result.error}</pre>` : ''}
+        </div>
+    `).join('');
+    document.getElementById('test-results').innerHTML = resultsHtml;
+}
+
+async function submitSolution() {
+    const code = editors.get(currentQuestionIndex)?.getValue();
+    const language = document.getElementById('language-select').value;
+
+    await runCode();
+
+    if (twotestcases) {
+        attemptedQuestions.add(currentQuestionIndex);
+        document.querySelectorAll('.question-btn')[currentQuestionIndex]
+            .classList.add('attempted');
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/submitexam', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                examId: examData.id,
+                questionId: examData.questions[currentQuestionIndex].id,
+                code,
+                language,
+                passed: twotestcases,
+                Username: email
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert('Solution submitted successfully!');
+        } else {
+            alert('Failed to submit solution: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error submitting solution: ' + error.message);
+    }
+}
+
+async function submitFullExam() {
+    try {
+        const response = await fetch('http://localhost:3000/api/submit-full-exam', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                examId: examData.id,
+                Username: email,
+                examName : examData.examName,
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            window.location.href = 'student-mocktests.html';
+        } else {
+            alert('Failed to submit exam: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error submitting exam: ' + error.message);
+    }
+}
     </script>
 </body>
+
 </html>

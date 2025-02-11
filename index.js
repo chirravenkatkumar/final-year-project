@@ -6,7 +6,7 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 const sequelize = require('./config/database');
-const  User = require('./models/user'); // Assuming you have the User model defined for Sequelize
+const User = require('./models/user'); // Assuming you have the User model defined for Sequelize
 const Task = require('./models/task'); // Sequelize model for Task
 const { exec } = require('child_process');
 const fs = require('fs').promises;
@@ -20,6 +20,7 @@ const temp = require('temp');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
 const ExamSubmission = require('./models/examsubmission');
+const ExamCompleted = require('./models/examcompleted')
 
 dotenv.config(); // Load environment variables
 
@@ -400,7 +401,7 @@ app.get('/api/compiler-status', (req, res) => {
 app.post('/api/run', async (req, res) => {
     const { code, language, input } = req.body;
     const filename = `temp_${Date.now()}`;
-    
+
     try {
         const result = await runCode(filename, code, language, input);
         res.json({ output: result });
@@ -415,7 +416,7 @@ app.post('/api/run', async (req, res) => {
 app.post('/api/test', async (req, res) => {
     const { code, language, testCases } = req.body;
     const filename = `temp_${Date.now()}`;
-    
+
     try {
         const results = await Promise.all(testCases.map(async (testCase, index) => {
             try {
@@ -423,7 +424,7 @@ app.post('/api/test', async (req, res) => {
                 const expectedLines = testCase.expectedOutput.trim().split('\n');
                 const actualLines = output.trim().split('\n');
                 const passed = output.trim() === testCase.expectedOutput.trim();
-                
+
                 const comparison = expectedLines.map((expected, i) => {
                     const actual = actualLines[i] || '';
                     return {
@@ -452,7 +453,7 @@ app.post('/api/test', async (req, res) => {
                 };
             }
         }));
-        
+
         res.json(results);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -500,7 +501,7 @@ app.post('/api/reset', async (req, res) => {
         const files = await fs.readdir(__dirname);
         const tempFiles = files.filter(file => file.startsWith('temp_'));
         await Promise.all(tempFiles.map(file => fs.unlink(path.join(__dirname, file))));
-        
+
         res.json({ success: true, message: 'Reset successful' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -539,7 +540,7 @@ ${code}`;
         const compileCmd = config.compile
             .replace('{file}', sourceFile)
             .replace('{exe}', exeFile);
-        
+
         await new Promise((resolve, reject) => {
             exec(compileCmd, (error, stdout, stderr) => {
                 if (error) {
@@ -555,7 +556,7 @@ ${code}`;
         .replace('{file}', sourceFile)
         .replace('{exe}', exeFile)
         .replace('{className}', filename);
-    
+
     return new Promise((resolve, reject) => {
         exec(runCmd, {
             timeout: 10000,
@@ -635,7 +636,7 @@ app.get('/api/materials', async (req, res) => {
     }
 
     try {
-        const materials = await StudyMaterial.findAll({ where: { branch, year} });
+        const materials = await StudyMaterial.findAll({ where: { branch, year } });
         console.log(materials);
         res.json(materials);
     } catch (error) {
@@ -696,6 +697,297 @@ app.get('/api/materials/download/:id', async (req, res) => {
         res.status(500).json({ error: 'Error downloading file.' });
     }
 });
+
+//Exam Editor Page
+
+// 📌 Add Exam Data
+app.post("/api/exams", async (req, res) => {
+    try {
+        const { branch, year, scheduleDateTime, examName, examTime, questions } = req.body;
+
+        if (!branch || !year || !scheduleDateTime || !examName || !examTime || !questions.length) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        const newExam = await Exam.create({
+            branch,
+            year,
+            scheduleDateTime,
+            examName,
+            examTime,
+            questions
+        });
+
+        res.status(201).json({ message: "Exam added successfully", data: newExam });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// 📌 Get All Exams
+app.get("/api/exams", async (req, res) => {
+    try {
+        const exams = await Exam.findAll();
+        res.json(exams);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+
+//student Mock Tets
+
+// Get Active or Completed Exams
+app.get("/api/exams/:type", async (req, res) => {
+    try {
+        const { type } = req.params;
+
+        // Fetch all exams
+        const exams = await Exam.findAll();
+
+        // Get the current time
+        const now = new Date();
+
+        // Update exam statuses if their scheduled time has passed
+        for (let exam of exams) {
+            if (new Date(exam.scheduleDateTime) < now && exam.status !== "completed") {
+                await Exam.update({ status: "completed" }, { where: { id: exam.id } });
+            }
+        }
+
+        // Fetch exams based on the updated status
+        const filteredExams = await Exam.findAll({ where: { status: type } });
+
+        res.json(filteredExams);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching exams", error });
+    }
+});
+
+
+// ✅ Check if an exam is completed
+app.post("/Exam_Completed_Check", async (req, res) => {
+    try {
+        const { examId, Username } = req.body;
+
+        // Check if the exam exists in the completed table
+        const completedExam = await ExamCompleted.findOne({
+            where: { examId, Username }
+        });
+
+        res.json(!!completedExam); // Returns true if found, false otherwise
+    } catch (error) {
+        console.error("Error checking exam completion:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
+
+
+// Get Exam by ID
+app.get("/api/exams/exam/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const exam = await Exam.findByPk(id);
+        if (!exam) return res.status(404).json({ message: "Exam not found" });
+        res.json(exam);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching exam details", error });
+    }
+});
+
+// // Add New Exam
+// app.post("/api/exams/add", async (req, res) => {
+//     try {
+//         const { branch, year, scheduleDateTime, examName, examTime, questions } = req.body;
+//         const newExam = await Exam.create({ branch, year, scheduleDateTime, examName, examTime, questions });
+//         res.status(201).json(newExam);
+//     } catch (error) {
+//         res.status(500).json({ message: "Error adding exam", error });
+//     }
+// });
+
+// // Mark Exam as Completed
+// app.put("/api/exams/complete/:id", async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         await Exam.update({ status: "completed" }, { where: { id } });
+//         res.json({ message: "Exam marked as completed" });
+//     } catch (error) {
+//         res.status(500).json({ message: "Error updating exam status", error });
+//     }
+// });
+
+
+// Exam_page Backend
+// Automatically track and cleanup temp files
+temp.track();
+
+
+// Get exam details
+app.get('/api/exam/:id', async (req, res) => {
+    try {
+        const examId = req.params.id;
+
+        // Validate exam ID
+        if (!examId || isNaN(examId)) {
+            return res.status(400).json({ error: 'Invalid exam ID' });
+        }
+
+        // Fetch the exam
+        const exam = await Exam.findOne({ where: { id: examId } });
+
+        if (!exam) {
+            return res.status(404).json({ error: 'Exam not found' });
+        }
+        //
+        res.json(exam);
+    } catch (error) {
+        console.error('Error fetching exam:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+// Run code
+app.post('/api/runexam', async (req, res) => {
+    const { code, language, input } = req.body;
+
+    try {
+        const result = await runCodeExam(code, language, input);
+        res.json(result);
+    } catch (error) {
+        console.error('Error running code:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Submit solution
+app.post('/api/submitexam', async (req, res) => {
+    const { examId, questionId, code, language, passed, Username } = req.body;
+
+    try {
+
+        // Check if a submission already exists for the given Username and taskId
+        let submission = await ExamSubmission.findOne({ where: { examId, questionId, Username } });
+
+        if (submission) {
+            // Update the existing submission
+            submission.code = code;
+            submission.language = language;
+            submission.passed = passed;
+            submission.submittedAt = new Date();
+            await submission.save();
+        } else {
+            // Create a new submission for that specific question
+            submission = await ExamSubmission.create({
+                examId,
+                questionId,
+                Username,
+                code,
+                language,
+                passed
+            });
+        }
+        res.json({ success: true, submission });
+    } catch (error) {
+        console.error('Error submitting solution:', error);
+        res.status(500).json({ error: 'Failed to submit solution' });
+    }
+});
+
+// Get latest code
+app.post('/api/get-exam-latest-code', async (req, res) => {
+
+    const { examId, questionId, Username } = req.body;
+
+    try {
+        // Find submission specific to exam, question, and user
+        const submission = await ExamSubmission.findOne({where : { examId, questionId, Username }});
+
+        if (!submission) {
+            return res.json({ success: false, message: "No submission found for this question" });
+        }
+
+        res.json({ success: true, submission });
+    } catch (error) {
+        console.error('Error fetching submission:', error);
+        res.status(500).json({ error: 'Failed to fetch submission' });
+    }
+});
+
+// Submit entire exam
+app.post('/api/submit-full-exam', async (req, res) => {
+    const { examId, examName, Username } = req.body;
+
+    try {
+
+            const FullExam = await ExamCompleted.create({
+                examId,
+                examName,
+                Username,
+            });
+        
+        // Update exam status to completed for this user
+        // You might want to create a separate ExamSubmission model for this
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error submitting exam:', error);
+        res.status(500).json({ error: 'Failed to submit exam' });
+    }
+});
+
+// Code execution helper function
+async function runCodeExam(code, language, input) {
+    const tempDir = await temp.mkdir('code-execution');
+    let sourceFile, executable, command;
+
+    try {
+        switch (language) {
+            case 'python':
+                sourceFile = path.join(tempDir, 'solution.py');
+                await fs.writeFile(sourceFile, code);
+                command = `python ${sourceFile}`;
+                break;
+
+            case 'cpp':
+                sourceFile = path.join(tempDir, 'solution.cpp');
+                executable = path.join(tempDir, 'solution');
+                await fs.writeFile(sourceFile, code);
+                await execAsync(`g++ ${sourceFile} -o ${executable}`);
+                command = executable;
+                break;
+
+            case 'java':
+                sourceFile = path.join(tempDir, 'Solution.java');
+                await fs.writeFile(sourceFile, code);
+                await execAsync(`javac ${sourceFile}`);
+                command = `java -cp ${tempDir} Solution`;
+                break;
+
+            default:
+                throw new Error('Unsupported language');
+        }
+
+        const { stdout, stderr } = await execAsync(command, {
+            input: input,
+            timeout: 5000 // 5 second timeout
+        });
+
+        return {
+            output: stdout,
+            error: stderr
+        };
+    } catch (error) {
+        return {
+            output: '',
+            error: error.message
+        };
+    }
+}
 
 
 // Start Server

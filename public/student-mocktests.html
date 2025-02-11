@@ -253,10 +253,13 @@ h1 {
             });
         }
 
+        const Username = localStorage.getItem('email'); 
+
         // Create exam card
         function createExamCard(exam) {
             const card = document.createElement('div');
             card.className = 'exam-card';
+            card.dataset.examId = exam.id;
 
             const now = new Date();
             const examDate = new Date(exam.scheduleDateTime);
@@ -333,6 +336,7 @@ h1 {
             }
 
             const interval = setInterval(updateCountdown, 1000);
+            countdownElement.closest('.exam-card').dataset.intervalId = interval;
             updateCountdown(); // Initial call
         }
 
@@ -346,35 +350,103 @@ h1 {
             return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // Fetch exams from API
-        async function fetchExams() {
-            try {
-                const response = await fetch(`http://localhost:3000/api/exams`);
-                const exams = await response.json();
+// Function to check if all active exams are completed
+async function checkAllActiveExams(Username) {
+    const activeExamCards = document.querySelectorAll('.exam-card');
 
-                activeExamsList.innerHTML = '';
-                completedExamsList.innerHTML = '';
+    for (const card of activeExamCards) {
+        const examId = card.dataset.examId;// Ensure correct retrieval
+        console.log(`Checking exam ID: ${examId}`);
 
-                const now = new Date();
+        if (examId) {
+            await Exam_Completed_Check(examId, Username, card);
+        }
+    }
+}
 
-                exams.forEach(exam => {
-                    const examDate = new Date(exam.scheduleDateTime);
-                    const twelveHoursLater = new Date(examDate.getTime() + 24 * 60 * 60 * 1000); // Add 12 hours
+// Completed if submit full exam clicks
+async function Exam_Completed_Check(examId, Username, examCard) {
+    try {
+        const response = await fetch('http://localhost:3000/Exam_Completed_Check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Username, examId })
+        });
 
-                    if (now < twelveHoursLater) {
-                        // Keep in Active tab
-                        const card = createExamCard(exam);
-                        activeExamsList.appendChild(card);
-                    } else {
-                        // Move to Completed tab
-                        const card = createExamCard(exam);
-                        completedExamsList.appendChild(card);
-                    }
-                });
-            } catch (error) {
-                console.error('Error fetching exams:', error);
+        const isCompleted = await response.json();
+        console.log(`Exam ${examId} completed status:`, isCompleted);
+
+        if (isCompleted) {
+            console.log(`Moving Exam ${examId} to completed list`);
+
+            // Ensure activeExamsList and completedExamsList are defined
+            const activeExamsList = document.getElementById("active-exams");
+            const completedExamsList = document.getElementById("completed-exams");
+
+            console.log("Active List:", activeExamsList);
+            console.log("Completed List:", completedExamsList);
+
+            if (examCard && activeExamsList && completedExamsList) {
+                // Clear the countdown interval
+                const intervalId = examCard.dataset.intervalId;
+                if (intervalId) {
+                    clearInterval(intervalId);
+                    console.log(`Interval cleared for exam ${examId}`);
+                }
+
+                // Disable the "Start Exam" button and update its text
+                const startBtn = examCard.querySelector('.start-btn');
+                if (startBtn) {
+                    startBtn.disabled = true;
+                    startBtn.textContent = 'Completed';
+                }
+
+                // Move the exam card to the completed list
+                activeExamsList.removeChild(examCard); // Remove from active list
+                completedExamsList.appendChild(examCard); // Move to completed list
+            } else {
+                console.warn("Missing elements: Could not move exam");
             }
         }
+    } catch (error) {
+        console.error(`Error checking completion for exam ${examId}:`, error);
+    }
+}
+
+
+// Fetch exams from API
+async function fetchExams() {
+    try {
+        const response = await fetch(`http://localhost:3000/api/exams`);
+        const exams = await response.json();
+
+        activeExamsList.innerHTML = '';
+        completedExamsList.innerHTML = '';
+
+        const now = new Date();
+
+        exams.forEach(exam => {
+            const examDate = new Date(exam.scheduleDateTime);
+            const twelveHoursLater = new Date(examDate.getTime() + 24 * 60 * 60 * 1000); // Add 12 hours
+
+            const card = createExamCard(exam);
+            if (now < twelveHoursLater) {
+                // Keep in Active tab
+                activeExamsList.appendChild(card);
+            } else {
+                // Move to Completed tab
+                completedExamsList.appendChild(card);
+            }
+        });
+
+        // Check all active exams after fetching
+        checkAllActiveExams(Username);
+
+    } catch (error) {
+        console.error('Error fetching exams:', error);
+    }
+}
+
 
         // Auto refresh every minute
         setInterval(fetchExams, 60000);
