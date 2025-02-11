@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Panel</title>
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+}
+
+.tab-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.tab-buttons button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: #e2e8f0;
+    color: #4a5568;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-buttons button.active {
+    background: #4299e1;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(66, 153, 225, 0.3);
+}
+
+.exam-list {
+    display: none;
+    grid-gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+}
+
+.exam-list.active {
+    display: grid;
+}
+
+.exam-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.exam-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+}
+
+.exam-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.exam-title {
+    flex: 1;
+}
+
+.exam-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.exam-details {
+    font-size: 0.875rem;
+    color: #718096;
+}
+
+.exam-time {
+    text-align: right;
+    color: #4a5568;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding-left: 1rem;
+}
+
+.exam-actions {
+    margin-top: 1.5rem;
+}
+
+.start-btn {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: #48bb78;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.start-btn:hover {
+    background: #38a169;
+}
+
+.start-btn:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h2 {
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.modal-content p {
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+}
+
+.modal-close {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: #4299e1;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.modal-close:hover {
+    background: #3182ce;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Exam Panel</h1>
+            <div class="tab-buttons">
+                <button id="activeExamsBtn" class="active" onclick="switchTab('active')">Active Exams</button>
+                <button id="completedExamsBtn" onclick="switchTab('completed')">Completed Exams</button>
+            </div>
+        </header>
+
+        <main>
+            <div id="active-exams" class="exam-list active"></div>
+            <div id="completed-exams" class="exam-list"></div>
+        </main>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2>Exam Not Started</h2>
+            <p>This exam has not started yet. Please check back at the scheduled time.</p>
+            <button onclick="closeModal()" class="modal-close">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const activeExamsBtn = document.getElementById('activeExamsBtn');
+        const completedExamsBtn = document.getElementById('completedExamsBtn');
+        const activeExamsList = document.getElementById('active-exams');
+        const completedExamsList = document.getElementById('completed-exams');
+        const modal = document.getElementById('modal');
+
+        // Switch tabs
+        function switchTab(type) {
+            // Update buttons
+            activeExamsBtn.classList.toggle('active', type === 'active');
+            completedExamsBtn.classList.toggle('active', type === 'completed');
+
+            // Update lists
+            activeExamsList.classList.toggle('active', type === 'active');
+            completedExamsList.classList.toggle('active', type === 'completed');
+
+            // Fetch exams
+            fetchExams(type);
+        }
+
+        // Format date and time
+        function formatDateTime(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Create exam card
+        function createExamCard(exam) {
+            const card = document.createElement('div');
+            card.className = 'exam-card';
+
+            const now = new Date();
+            const examDate = new Date(exam.scheduleDateTime);
+            const examEndDate = new Date(examDate.getTime() + 24 * 60 * 60 * 1000); // Add 12 hours
+            const isCompleted = now > examEndDate;
+
+            card.innerHTML = `
+                <div class="exam-header">
+                    <div class="exam-title">
+                        <h3 class="exam-name">${exam.examName}</h3>
+                        <p class="exam-details">
+                            ${exam.branch} | ${exam.year} Year
+                        </p>
+                    </div>
+                    <div class="exam-time">
+                        Scheduled:<br>${formatDateTime(exam.scheduleDateTime)}
+                    </div>
+                </div>
+                <div class="exam-actions">
+                    <div class="countdown-timer" id="countdown-${exam.id}"></div>
+                    <button class="start-btn" ${isCompleted ? 'disabled' : ''}>
+                        ${isCompleted ? 'Completed' : 'Start Exam'}
+                    </button>
+                </div>
+            `;
+
+            if (!isCompleted) {
+                const startBtn = card.querySelector('.start-btn');
+                startBtn.addEventListener('click', () => handleExamStart(exam));
+
+                // Start countdown timer
+                const countdownElement = card.querySelector(`#countdown-${exam.id}`);
+                if (countdownElement) {
+                    startCountdownTimer(countdownElement, examDate, examEndDate);
+                } else {
+                    console.error(`Countdown element for exam ${exam.id} not found.`);
+                }
+            }
+
+            return card;
+        }
+
+        // Handle exam start
+        function handleExamStart(exam) {
+            const now = new Date();
+            const examDate = new Date(exam.scheduleDateTime);
+            
+            if (now < examDate) {
+                showModal();
+            } else {
+                window.location.href = `exam_page.html?taskId=${exam.id}`;
+            }
+        }
+
+        // Start countdown timer
+        function startCountdownTimer(countdownElement, examDate, examEndDate) {
+            function updateCountdown() {
+                const now = new Date();
+                let timeDifference;
+
+                if (now < examDate) {
+                    // Exam hasn't started yet
+                    timeDifference = examDate - now;
+                    countdownElement.textContent = `Starts in: ${formatTime(timeDifference)}`;
+                } else if (now < examEndDate) {
+                    // Exam is ongoing
+                    timeDifference = examEndDate - now;
+                    countdownElement.textContent = `Time left: ${formatTime(timeDifference)}`;
+                } else {
+                    // Exam is completed
+                    countdownElement.textContent = 'Exam Completed';
+                    clearInterval(interval);
+                }
+            }
+
+            const interval = setInterval(updateCountdown, 1000);
+            updateCountdown(); // Initial call
+        }
+
+        // Format time in HH:MM:SS
+        function formatTime(milliseconds) {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // Fetch exams from API
+        async function fetchExams() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/exams`);
+                const exams = await response.json();
+
+                activeExamsList.innerHTML = '';
+                completedExamsList.innerHTML = '';
+
+                const now = new Date();
+
+                exams.forEach(exam => {
+                    const examDate = new Date(exam.scheduleDateTime);
+                    const twelveHoursLater = new Date(examDate.getTime() + 24 * 60 * 60 * 1000); // Add 12 hours
+
+                    if (now < twelveHoursLater) {
+                        // Keep in Active tab
+                        const card = createExamCard(exam);
+                        activeExamsList.appendChild(card);
+                    } else {
+                        // Move to Completed tab
+                        const card = createExamCard(exam);
+                        completedExamsList.appendChild(card);
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching exams:', error);
+            }
+        }
+
+        // Auto refresh every minute
+        setInterval(fetchExams, 60000);
+
+        // Initial fetch
+        fetchExams();
+
+        // Initial load
+        switchTab('active');
+    </script>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Lab Tasks</title>
+    <style>
+        /* Basic styles for hiding sections and layout */
+        .hidden {
+            display: none;
+        }
+
+        .section {
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        #editor {
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #000000;
+            border: 1px solid #000000;
+            border-radius: 5px;
+            height: 100px;
+        }
+
+        #task-question,
+        #task-description,
+        #task-testcases {
+            margin: 10px 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+        }
+
+        button:focus {
+            outline: none;
+        }
+
+        button:hover {
+            background-color: #ddd;
+        }
+
+        p {
+            color: #333;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #002b5b;
+            color: white;
+            padding: 10px 20px;
+            font-style: italic;
+            font-size: 30px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: white;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        .navbar a.home {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            text-decoration: underline;
+            font-size: 20px;
+        }
+
+        .navbar .email {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            font-size: 20px;
+        }
+
+        .logout-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s ease-in-out;
+    
+    /* White glow effect */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 
+                0 0 20px rgba(255, 255, 255, 0.6), 
+                0 0 30px rgba(255, 255, 255, 0.4);
+}
+
+/* Glow effect on hover */
+.logout-btn:hover {
+    background-color: #dc3545;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 1), 
+                0 0 25px rgba(255, 255, 255, 0.9), 
+                0 0 35px rgba(255, 255, 255, 0.7);
+}
+
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .lab-card {
+            background-color: #f9f9f9;
+            border-left: 5px solid #007bff;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .lab-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .lab-card h3 {
+            font-size: 18px;
+            color: #007bff;
+        }
+
+        .lab-card p {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #218838;
+        }
+
+        .icon {
+            cursor: pointer;
+            color: #333;
+        }
+
+        .icon:hover {
+            color: #007bff;
+        }
+
+        .print-btn {
+            display: block;
+            margin: 10px auto 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .print-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+</head>
+
+<body>
+    <div class="navbar">
+        <a href="#">Student EduFlow</a>
+        <a class="home" href="./student.html">Home
+            🏠︎
+           </a>
+        <span class="email"></span>
+        <a style="font-size: 20px;"  href="#">Support</a>
+        <button class="logout-btn" onclick="window.location.href='index.html'">Logout</button>
+    </div>
+    <div class="container">
+        <div id="subject-section" class="section hidden">
+            <h2>Subjects</h2>
+            <div class="lab-card">
+                <div id="subjects-container"></div>
+            </div>
+        </div>
+
+        <div id="task-section" class="section hidden">
+            <h2>Tasks Sub name put here</h2>
+            <button class="print-btn">Print Lab Record</button>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Name of Question</th>
+                            <th>Print</th>
+                            <th>Status</th>
+                            <th>Q.Open</th>
+                        </tr>
+                    </thead>
+                    <tbody id="task-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="task-detail-section" class="section hidden">
+            <h2>Task Details</h2>
+            <p><strong>Question:</strong> <span id="task-question"></span></p>
+            <p><strong>Description:</strong> <span id="task-description"></span></p>
+            <p><strong>Test Cases:</strong> <span id="task-testcases"></span></p>
+            <label for="languageSelect">Choose Language:</label>
+            <select id="languageSelect">
+                <option value="c">C</option>
+                <option value="cpp">C++</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+            </select>
+            <div id="editor"></div>
+            <div id="output"></div>
+            <div class="button-container">
+                <button id="run">Run</button>
+                <button id="reset">Reset</button>
+                <button id="submit">Submit</button>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", async () => {
+                const subjectSection = document.getElementById("subject-section");
+                const subjectsContainer = document.getElementById("subjects-container");
+                const taskSection = document.getElementById("task-section");
+                const taskTable = document.getElementById("task-table");
+                const taskDetailSection = document.getElementById("task-detail-section");
+                const taskQuestion = document.getElementById("task-question");
+                const taskDescription = document.getElementById("task-description");
+                const taskTestCases = document.getElementById("task-testcases");
+                const editor = document.getElementById("editor");
+                const emailSpan = document.querySelector(".email"); // Select the email span
+
+                // Set the email from local storage
+                const email = localStorage.getItem('email'); // Assuming the email is stored with the key 'email'
+                if (email) {
+                    emailSpan.textContent = email; // Set the email span text
+                } else {
+                    emailSpan.textContent = "Email not found"; // Fallback if email is not in local storage
+                }
+
+                function resetVisibility() {
+                    const sections = document.querySelectorAll('.section');
+                    sections.forEach(section => {
+                        section.classList.add("hidden");
+                    });
+                }
+
+                async function getYear() {
+                    try {
+                        const year = localStorage.getItem('year');
+                        if (year) {
+                            return year;
+                        } else {
+                            throw new Error('Year not found in localStorage');
+                        }
+                    } catch (error) {
+                        console.error('Error getting year from localStorage:', error);
+                    }
+                }
+
+                async function getBranch() {
+                    try {
+                        const branch = localStorage.getItem('branch');
+                        if (branch) {
+                            return branch;
+                        } else {
+                            throw new Error('Branch not found in localStorage');
+                        }
+                    } catch (error) {
+                        console.error('Error getting branch from localStorage:', error);
+                    }
+                }
+
+                async function loadSubjects(year, branch) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/subjects?branch=${branch}&year=${year}`);
+                        const subjects = await response.json();
+
+                        if (response.ok) {
+                            subjectSection.classList.remove("hidden");
+                            if (subjects.length > 0) {
+                                subjectsContainer.innerHTML = subjects
+                                    .map(subject => `<button class="subject-btn" data-subject="${subject}">${subject}</button>`)
+                                    .join("");
+                            } else {
+                                subjectsContainer.innerHTML = "<p>No subjects available for this branch.</p>";
+                            }
+                        } else {
+                            alert("Failed to load subjects.");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching subjects:", error);
+                    }
+                }
+
+                subjectsContainer.addEventListener("click", async (event) => {
+    if (event.target.classList.contains("subject-btn")) {
+        const subject = event.target.dataset.subject;
+        resetVisibility();
+        taskSection.classList.remove("hidden");
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/tasks?subject=${subject}`);
+            const tasks = await response.json();
+
+            if (response.ok) {
+                taskTable.innerHTML = tasks
+                    .map(task => `
+                        <tr>
+                            <td>${task.id}</td>
+                            <td>${task.question}</td>
+                            <td><button class="print-btn">🖨️</button></td>
+                            <td><button class="status-btn" data-id="${task.id}">Status</button></td>
+                            <td><button class="task-btn" data-id="${task.id}">Open Question</button></td>
+                        </tr>
+                    `)
+                    .join("");
+
+                // Attach event listeners to the "Open Question" buttons
+                const taskButtons = document.querySelectorAll(".task-btn");
+                taskButtons.forEach(button => {
+                    button.addEventListener("click", () => {
+                        const taskId = button.dataset.id;
+                        openCodeEditor(taskId);
+                    });
+                });
+            } else {
+                alert("Failed to load tasks.");
+            }
+        } catch (error) {
+            console.error("Error fetching tasks:", error);
+        }
+    }
+});
+
+// Function to open codeeditor.html with task ID
+function openCodeEditor(taskId) {
+    window.location.href = `codeeditor.html?taskId=${taskId}`;
+}
+
+                const userBranch = await getBranch();
+                const userYear = await getYear();
+                if (userBranch && userYear) {
+                    await loadSubjects(userYear, userBranch);
+                } else {
+                    alert("Unable to determine user branch and Year. Please try logging in again.");
+                }
+            });
+        </script>
+    </div>
+</body>
+
+</html>

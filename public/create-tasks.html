@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Create Tasks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .container {
+            width: 600px;
+            margin: 0 auto;
+        }
+
+        .task-list {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .task {
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Create Task</h2>
+        <form id="taskForm">
+            <label for="question">Task Question</label>
+            <textarea id="question" placeholder="Enter task question" required></textarea>
+
+            <label for="description">Task Description</label>
+            <textarea id="description" placeholder="Enter task description" required></textarea>
+
+            <label for="testcase1">Test Case 1 Input</label>
+            <input type="t" id="testcase1-input" placeholder="Input" required>
+            <label for="testcase1-output">Test Case 1 Output</label>
+            <input type="text" id="testcase1-output" placeholder="Output" required>
+
+            <label for="testcase2">Test Case 2 Input</label>
+            <input type="text" id="testcase2-input" placeholder="Input" required>
+            <label for="testcase2-output">Test Case 2 Output</label>
+            <input type="text" id="testcase2-output" placeholder="Output" required>
+
+            <label for="year">Select Year</label>
+            <select id="year" required>
+                <option value="">Select year</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+            </select>
+
+            <label for="branch">Select Branch</label>
+            <select id="branch" required>
+                <option value="">Select Branch</option>
+                <option value="cse">CSE</option>
+                <option value="ece">ECE</option>
+                <option value="eee">EEE</option>
+                <option value="civil">Civil</option>
+            </select>
+
+            <div id="subject-container" style="display: none;">
+                <label for="subject">Select Subject</label>
+                <div id="subjects"></div>
+            </div>
+
+            <button type="submit">Upload⬆️</button>
+        </form>
+
+        <div class="task-list" id="taskList">
+            <h3>Submitted Tasks</h3>
+        </div>
+    </div>
+
+    <script>
+        const taskForm = document.getElementById('taskForm');
+        const yearSelect = document.getElementById('year');
+        const branchSelect = document.getElementById('branch');
+        const subjectContainer = document.getElementById('subject-container');
+        const subjectsDiv = document.getElementById('subjects');
+        const taskList = document.getElementById('taskList');
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch('http://localhost:3000/api/tasks');
+                const tasks = await response.json();
+                console.log(tasks);
+                if (response.ok) {
+                    tasks.forEach(displayTask);
+                } else {
+                    alert('Failed to fetch tasks.');
+                }
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        }
+
+
+        const subjects = {
+            cse: {
+                1: ["Programming Fundamentals", "Basic Mathematics"],
+                2: ["Data Structures", "Computer Organization"],
+                3: ["Algorithms", "DBMS"],
+                4: ["Operating Systems", "Artificial Intelligence"]
+            },
+            ece: {
+                1: ["Basic Electronics", "Engineering Physics"],
+                2: ["Digital Circuits", "Signals and Systems"],
+                3: ["Microprocessors", "Communication Systems"],
+                4: ["VLSI Design", "Embedded Systems"]
+            },
+            eee: {
+                1: ["Electrical Circuits", "Basic Electrical Engineering"],
+                2: ["Electromagnetic Fields", "Analog Electronics"],
+                3: ["Power Systems", "Control Systems"],
+                4: ["Renewable Energy", "Electrical Machines"]
+            },
+            civil: {
+                1: ["Engineering Mechanics", "Basic Drawing"],
+                2: ["Strength of Materials", "Fluid Mechanics"],
+                3: ["Structural Engineering", "Transportation Engineering"],
+                4: ["Geotechnical Engineering", "Construction Management"]
+            }
+        };
+
+
+
+        branchSelect.addEventListener('change', updateSubjects);
+        yearSelect.addEventListener('change', updateSubjects);
+
+        function updateSubjects() {
+            const selectedBranch = branchSelect.value;
+            const selectedYear = yearSelect.value;
+
+            console.log("Selected Branch:", selectedBranch);
+            console.log("Selected Year:", selectedYear);
+
+            if (selectedBranch && selectedYear) {
+                subjectContainer.style.display = 'block';
+                subjectsDiv.innerHTML = subjects[selectedBranch][selectedYear]
+                    .map(subject => `<label><input type="radio" name="subject" value="${subject}" required> ${subject}</label><br>`)
+                    .join('');
+            } else {
+                subjectContainer.style.display = 'none';
+                subjectsDiv.innerHTML = '';
+            }
+        }
+
+
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const task = {
+                question: document.getElementById('question').value,
+                description: document.getElementById('description').value,
+                testcase1: {
+                    input: document.getElementById('testcase1-input').value,
+                    output: document.getElementById('testcase1-output').value,
+                },
+                testcase2: {
+                    input: document.getElementById('testcase2-input').value,
+                    output: document.getElementById('testcase2-output').value,
+                },
+                year: yearSelect.value,
+                branch: branchSelect.value,
+                subject: document.querySelector('input[name="subject"]:checked').value,
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/api/tasks', { // Changed URL to match backend route
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(task),
+                });
+
+                const text = await response.text();
+                console.log(text);  // Log raw response for debugging
+                const data = JSON.parse(text); // Ensure the backend returns JSON
+
+                if (response.ok) {
+                    alert('Task successfully added!');
+                    displayTask(data);
+                } else {
+                    alert(data.message || 'Error adding task.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the task.');
+            }
+        });
+
+        function displayTask(task) {
+            const taskDiv = document.createElement('div');
+            console.log(task);
+            taskDiv.className = 'task';
+            taskDiv.innerHTML =
+                `<strong>Question:</strong> ${task.question}<br>
+                 <strong>Description:</strong> ${task.description}<br>
+                 <strong>Year:</strong> ${task.year}<br>
+                 <strong>Branch:</strong> ${task.branch}<br>
+                 <strong>Subject:</strong> ${task.subject}<br>
+                 <strong>Test Case 1:</strong> Input: ${task.testcase1_input}, Output: ${task.testcase1_output}<br>
+                 <strong>Test Case 2:</strong> Input: ${task.testcase2_input}, Output: ${task.testcase2_output}<br>`;
+            taskList.appendChild(taskDiv);
+        }
+
+        // Fetch tasks on page load
+        window.addEventListener('DOMContentLoaded', fetchTasks);
+
+    </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+

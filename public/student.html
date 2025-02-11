@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Panel</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oleo+Script:wght@400;700&display=swap');
+
+        body {
+            font-family: "DM Serif Display", serif;
+            margin: 0;
+            padding: 0;
+            font-size: 35px;
+            color: white;
+            min-height: 100vh;
+            background: white;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+
+        /*.background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('../images/bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -1;
+        }*/
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #002b5b;
+            color: white;
+            padding: 10px 20px;
+            font-style: italic;
+            font-size: 30px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: white;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        .navbar a.home {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            text-decoration: underline;
+            font-size: 20px;
+        }
+
+        .navbar .email {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            font-size: 20px;
+        }
+
+        .logout-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s ease-in-out;
+    
+    /* White glow effect */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 
+                0 0 20px rgba(255, 255, 255, 0.6), 
+                0 0 30px rgba(255, 255, 255, 0.4);
+}
+
+/* Glow effect on hover */
+.logout-btn:hover {
+    background-color: #dc3545;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 1), 
+                0 0 25px rgba(255, 255, 255, 0.9), 
+                0 0 35px rgba(255, 255, 255, 0.7);
+}
+
+        h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: rgb(0, 0, 0);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
+            border-left: 300px solid transparent;
+            border-right: 300px solid transparent;
+        }
+
+        .task-card {
+            background: rgb(255, 255, 255);
+            box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            /*border: 1px solid rgb(0, 0, 0);*/
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+            /*box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.26);*/
+            border-bottom: 7px solid #000000;
+            border-top: 4PX solid #ffea00;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            /*border: 1px solid rgb(0, 0, 0);*/
+        }
+
+        .task-card h3 {
+            margin: 0.5rem 0;
+            font-size: 1.4rem;
+            color: rgb(0, 0, 0);
+            font-family: "Oleo Script", serif;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card p {
+            color: rgba(0, 0, 0, 0.8);
+            font-size: 1rem;
+            font-family: "Oleo Script", serif;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .task-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                padding: 0.5rem;
+            }
+
+            body {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-image"></div>
+    <div class="navbar">
+        <a href="#">Student EduFlow</a>
+        <span class="email"></span>
+        <a class="support" href="#">Support</a>
+        <button class="logout-btn" onclick="window.location.href='index.html'">Logout</button>
+    </div>
+    <div class="container">
+        <div class="task-grid" id="student-tasks"></div>
+    </div>
+
+    <script>
+        const studentTasks = [
+            { title: "View Tasks", description: "See your assigned tasks.", image: "https://cdn4.vectorstock.com/i/1000x1000/61/03/people-learning-education-related-vector-20906103.jpg", page: "studentlabtasks.html" },
+            { title: "Study Materials", description: "Materiasl.", image: "https://tse3.mm.bing.net/th?id=OIP.RTarzupuT4pBeFYqak1tYwHaEK&pid=Api&P=0&h=180", page: "student-study-materials.html" },
+            { title: "Access Resources", description: "Download study materials.", image: "https://cdn.leverageedu.com/blog/wp-content/uploads/2020/04/29183738/Types-of-Education.png" },
+            { title: "Receive Notifications", description: "Stay updated with alerts.", image: "https://milgrasp.com/img/sections/features/notifications2.jpg" },
+            { title: "Mock Tests", description: "Attempt practice tests.", image: "https://assets.thehansindia.com/h-upload/2022/04/18/1287631-test.webp", page: "student-mocktests.html" },
+            { title: "Performance Insights", description: "Track your progress.", image: "https://tse4.mm.bing.net/th?id=OIP.yKQyLiyR07Nd05WHC_nX4wHaEK&pid=Api&P=0&h=180" }
+        ];
+
+        const studentTasksContainer = document.getElementById('student-tasks');
+        const emailSpan = document.querySelector(".email"); // Select the email span
+
+        // Set the email from local storage
+        const email = localStorage.getItem('email'); // Assuming the email is stored with the key 'email'
+        if (email) {
+            emailSpan.textContent = email; // Set the email span text
+        } else {
+            emailSpan.textContent = "Email not found"; // Fallback if email is not in local storage
+        }
+
+
+        studentTasks.forEach(task => {
+            const taskCard = document.createElement('div');
+            taskCard.className = 'task-card';
+            taskCard.innerHTML = `
+                <img src="${task.image}" alt="${task.title}">
+                <h3>${task.title}</h3>
+                <p>${task.description}</p>
+            `;
+            taskCard.onclick = () => {
+                window.location.href = task.page;
+            };
+            studentTasksContainer.appendChild(taskCard);
+        });
+    </script>
+</body>
+
+</html>

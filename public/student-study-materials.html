@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Study Materials</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        .subjects, .materials {
+            margin-top: 20px;
+        }
+
+        .subject-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .subject-item:hover {
+            background: #0056b3;
+        }
+
+        .materials {
+            display: none;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+
+        .file-item a {
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+            background: #28a745;
+        }
+
+        .file-item a.download {
+            background: #dc3545;
+        }
+
+        .back-btn {
+            background: #333;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        .back-btn:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Student Study Materials</h2>
+
+        <!-- Subjects Section -->
+        <div id="subjectsContainer" class="subjects">
+            <h3>Select a Subject:</h3>
+            <div id="subjectsList"></div>
+        </div>
+
+        <!-- Materials Section -->
+        <div id="materialsContainer" class="materials">
+            <h3 id="selectedSubject"></h3>
+            <div id="fileList"></div>
+            <button class="back-btn" onclick="goBack()">Back to Subjects</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const apiBaseUrl = 'http://localhost:3000/api/materials';
+            const studentBranch = localStorage.getItem('branch');
+            const studentYear = localStorage.getItem('year');
+
+            const subjectsContainer = document.getElementById('subjectsContainer');
+            const materialsContainer = document.getElementById('materialsContainer');
+            const selectedSubjectHeading = document.getElementById('selectedSubject');
+            const fileList = document.getElementById('fileList');
+            const subjectsList = document.getElementById('subjectsList');
+
+            async function fetchSubjects() {
+                if (!studentBranch || !studentYear) {
+                    subjectsList.innerHTML = "<p>Branch and year information is missing.</p>";
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${apiBaseUrl}?branch=${studentBranch}&year=${studentYear}`);
+                    const data = await response.json();
+
+                    if (data.length === 0) {
+                        subjectsList.innerHTML = "<p>No subjects found for the selected branch and year.</p>";
+                        return;
+                    }
+
+                    const uniqueSubjects = [...new Set(data.map(item => item.subject))];
+                    subjectsList.innerHTML = ''; // Clear existing list
+
+                    uniqueSubjects.forEach(subject => {
+                        const subjectItem = document.createElement('div');
+                        subjectItem.classList.add("subject-item");
+                        subjectItem.innerHTML = `<span>${subject}</span> <span>➜</span>`;
+                        subjectItem.onclick = () => fetchStudyMaterials(subject);
+                        subjectsList.appendChild(subjectItem);
+                    });
+
+                } catch (error) {
+                    console.error("Error fetching subjects:", error);
+                    subjectsList.innerHTML = "<p>Error loading subjects.</p>";
+                }
+            }
+
+            async function fetchStudyMaterials(subject) {
+                selectedSubjectHeading.textContent = subject;
+                subjectsContainer.style.display = "none";
+                materialsContainer.style.display = "block";
+                fileList.innerHTML = "<p>Loading...</p>";
+
+                try {
+                    const response = await fetch(`${apiBaseUrl}?branch=${studentBranch}&year=${studentYear}`);
+                    const data = await response.json();
+                    
+                    const subjectMaterials = data.filter(item => item.subject === subject);
+                    
+                    if (subjectMaterials.length === 0) {
+                        fileList.innerHTML = "<p>No study materials available.</p>";
+                        return;
+                    }
+
+                    fileList.innerHTML = "";
+                    subjectMaterials.forEach(material => {
+                        const fileDiv = document.createElement('div');
+                        fileDiv.classList.add("file-item");
+                        fileDiv.innerHTML = `
+                        
+                            <span>${material.fileName}</span>
+                            <a href="${apiBaseUrl}/view/${material.id}" target="_blank">View</a>
+                            <a href="${apiBaseUrl}/download/${material.id}" class="download" download>Download</a>
+                        `;
+                        fileList.appendChild(fileDiv);
+                    });
+                } catch (error) {
+                    console.error("Error fetching materials:", error);
+                    fileList.innerHTML = "<p>Error loading study materials.</p>";
+                }
+            }
+
+            fetchSubjects();
+        });
+
+        function goBack() {
+                materialsContainer.style.display = "none";
+                subjectsContainer.style.display = "block";
+            }
+    </script>
+
+</body>
+
+</html>

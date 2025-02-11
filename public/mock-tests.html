@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            font-weight: bold;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .add-btn {
+            background: #28a745;
+            color: #fff;
+        }
+        .submit-btn {
+            background: #007bff;
+            color: #fff;
+        }
+        .questions-list {
+            margin-top: 20px;
+        }
+        .question-item {
+            padding: 10px;
+            background: #e3e3e3;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Exam Admin Panel</h2>
+
+    <label for="branch">Select Branch:</label>
+    <select id="branch">
+        <option value="CSE">CSE</option>
+        <option value="ECE">ECE</option>
+        <option value="EEE">EEE</option>
+        <option value="Civil">Civil</option>
+    </select>
+
+    <label for="year">Select Year:</label>
+    <select id="year">
+        <option value="1">1st Year</option>
+        <option value="2">2nd Year</option>
+        <option value="3">3rd Year</option>
+        <option value="4">4th Year</option>
+    </select>
+
+    <label for="scheduleDate">Schedule Date & Time:</label>
+    <input type="datetime-local" id="scheduleDate">
+
+    <label for="examName">Exam Name:</label>
+    <input type="text" id="examName">
+
+    <label for="examTime">Exam Duration (Minutes):</label>
+    <input type="number" id="examTime" min="1" placeholder="Enter minutes">
+
+    <h3>Questions</h3>
+
+    <label for="question">Question:</label>
+    <input type="text" id="question">
+
+    <label for="description">Description:</label>
+    <textarea id="description"></textarea>
+
+    <h4>Test Case 1</h4>
+    <label for="testInput1">Input:</label>
+    <textarea id="testInput1"></textarea>
+
+    <label for="testOutput1">Output:</label>
+    <textarea id="testOutput1"></textarea>
+
+    <h4>Test Case 2</h4>
+    <label for="testInput2">Input:</label>
+    <textarea id="testInput2"></textarea>
+
+    <label for="testOutput2">Output:</label>
+    <textarea id="testOutput2"></textarea>
+
+    <button class="add-btn" onclick="addQuestion()">Add Another Question</button>
+    <div class="questions-list" id="questionsList"></div>
+
+    <button class="submit-btn" onclick="submitExam()">Upload Exam</button>
+</div>
+
+<script>
+    let questions = [];
+
+    function addQuestion() {
+        const question = document.getElementById("question").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const testInput1 = document.getElementById("testInput1").value.trim();
+        const testOutput1 = document.getElementById("testOutput1").value.trim();
+        const testInput2 = document.getElementById("testInput2").value.trim();
+        const testOutput2 = document.getElementById("testOutput2").value.trim();
+
+        if (!question || !description || !testInput1 || !testOutput1 || !testInput2 || !testOutput2) {
+            alert("Please fill all fields before adding another question.");
+            return;
+        }
+
+        const questionData = {
+            id: questions.length + 1,
+            question,
+            description,
+            testCases: [
+                { input: testInput1, output: testOutput1 },
+                { input: testInput2, output: testOutput2 }
+            ]
+        };
+
+        questions.push(questionData);
+
+        document.getElementById("questionsList").innerHTML += `
+            <div class="question-item">
+                <strong>Q${questionData.id}:</strong> ${questionData.question}
+            </div>
+        `;
+
+        // Clear input fields for next question
+        document.getElementById("question").value = "";
+        document.getElementById("description").value = "";
+        document.getElementById("testInput1").value = "";
+        document.getElementById("testOutput1").value = "";
+        document.getElementById("testInput2").value = "";
+        document.getElementById("testOutput2").value = "";
+    }
+
+    function submitExam() {
+        const branch = document.getElementById("branch").value;
+        const year = document.getElementById("year").value;
+        const scheduleDateTime = document.getElementById("scheduleDate").value;
+        const examName = document.getElementById("examName").value.trim();
+        const examTime = document.getElementById("examTime").value.trim();
+
+        if (!branch || !year || !scheduleDateTime || !examName || !examTime || questions.length === 0) {
+            alert("Please complete all fields and add at least one question.");
+            return;
+        }
+
+        const examData = {
+            branch,
+            year,
+            scheduleDateTime,
+            examName,
+            examTime: parseInt(examTime), // Ensure it is stored as a number
+            questions
+        };
+
+        fetch("http://localhost:3000/api/exams", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(examData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Exam uploaded successfully!");
+            console.log(data);
+
+            // Reset form after successful submission
+            questions = [];
+            document.getElementById("questionsList").innerHTML = "";
+            document.getElementById("examName").value = "";
+            document.getElementById("examTime").value = "";
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Failed to upload exam.");
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Panel</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oleo+Script:wght@400;700&display=swap');
+
+        body {
+            font-family: "DM Serif Display", serif;
+            margin: 0;
+            padding: 0;
+            font-size: 35px;
+            background: linear-gradient(135deg, #ffffff, #fffffffb);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            padding: 2rem;
+            position: relative;
+        }
+
+        .logout {
+            background: rgba(255, 255, 255, 0.801);
+            backdrop-filter: blur(10px);
+            color: rgba(0, 0, 0, 0.885);
+            border: 1px solid rgba(0, 0, 0, 0.801);
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: gray;
+            font-family: "DM Serif Display", serif;
+            transition: all 0.3s ease;
+        }
+
+        .logout:hover {
+            background: rgb(255, 0, 0);
+            transform: translateY(-2px);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: rgb(0, 0, 0);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgb(0, 0, 0);
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: #ff0000;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid rgb(0, 0, 0);
+        }
+
+        .task-card h3 {
+            margin: 0.5rem 0;
+            font-size: 1.4rem;
+            color: rgb(0, 0, 0);
+            font-family: "Oleo Script", serif;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card p {
+            color: rgba(0, 0, 0, 0.8);
+            font-size: 1rem;
+            font-family: "Oleo Script", serif;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .task-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                padding: 0.5rem;
+            }
+
+            body {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="logout" onclick="window.location.href='index.html'">Logout</button>
+        <h2>Admin Panel</h2>
+        <div class="task-grid" id="admin-tasks"></div>
+    </div>
+
+    <script>
+        const adminTasks = [
+            { title: "Create Tasks", description: "Create and assign Lab Tasks", image: "https://thumbs.dreamstime.com/b/list-completed-tasks-vector-list-completed-tasks-vector-illustration-isometric-design-isolated-white-background-checklist-136690433.jpg", page: "create-tasks.html" },
+            { title: "Materials", description: "Study Materials", image: "https://tse2.mm.bing.net/th?id=OIP._C05pi5i5oBWn0uVV3STggHaEK&pid=Api&P=0&h=180", page: "study-materials.html" },
+            //{ title: "Send Notifications", description: "Send alerts to students", image: "https://cdn.leverageedu.com/blog/wp-content/uploads/2020/04/29183738/Types-of-Education.png", page: "send-notifications.html" },
+            { title: "Receive Notifications", description: "Stay updated with alerts.", image: "https://milgrasp.com/img/sections/features/notifications2.jpg", page: "receive-notifications.html" },
+           { title: "Mock Tests", description: "Attempt practice tests.", image: "https://assets.thehansindia.com/h-upload/2022/04/18/1287631-test.webp", page: "mock-tests.html" },
+        //    { title: "Performance Insights", description: "Track your progress.", image: "https://tse4.mm.bing.net/th?id=OIP.yKQyLiyR07Nd05WHC_nX4wHaEK&pid=Api&P=0&h=180", page: "performance-insights.html" }
+         ];
+
+        const adminTasksContainer = document.getElementById('admin-tasks');
+
+        adminTasks.forEach(task => {
+            const taskCard = document.createElement('div');
+            taskCard.className = 'task-card';
+            taskCard.innerHTML = `
+                <img src="${task.image}" alt="${task.title}">
+                <h3>${task.title}</h3>
+                <p>${task.description}</p>
+            `;
+            taskCard.onclick = () => {
+                window.location.href = task.page;
+            };
+            adminTasksContainer.appendChild(taskCard);
+        });
+    </script>
+</body>
+</html>
+
+
+

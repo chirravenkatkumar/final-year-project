@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #002b5b;
+            color: white;
+            padding: 10px 20px;
+            font-style: italic;
+            font-size: 30px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: white;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        .navbar a.home {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            text-decoration: underline;
+            font-size: 20px;
+        }
+
+        .navbar .email {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            font-size: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s ease-in-out;
+
+            /* White glow effect */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+                0 0 20px rgba(255, 255, 255, 0.6),
+                0 0 30px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Glow effect on hover */
+        .logout-btn:hover {
+            background-color: #dc3545;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 1),
+                0 0 25px rgba(255, 255, 255, 0.9),
+                0 0 35px rgba(255, 255, 255, 0.7);
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        .left-panel {
+            width: 40%;
+            padding: 20px;
+            background-color: white;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+        }
+
+        .right-panel {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-section {
+            margin-bottom: 20px;
+        }
+
+        .question-section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .test-cases {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .editor-controls {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+
+        #language-select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        #language-select option:disabled {
+            color: #999;
+            font-style: italic;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #editor-container {
+            flex-grow: 1;
+        }
+
+        .CodeMirror {
+            height: 100% !important;
+            font-size: 14px;
+        }
+
+        .output-section {
+            height: 200px;
+            background-color: white;
+            border-top: 1px solid #ddd;
+        }
+
+        .output-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            color: #4CAF50;
+            border-bottom: 2px solid #4CAF50;
+            border-right: 2px solid #4CAF50;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 15px;
+            height: calc(100% - 37px);
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #output,
+        #test-results {
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        .test-case {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .test-case pre {
+            background-color: #f5f5f5;
+            padding: 8px;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .passed {
+            border-left: 4px solid #28a745;
+        }
+
+        .failed {
+            border-left: 4px solid #dc3545;
+        }
+
+        .comparison {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .line-comparison {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .line-comparison.match {
+            background-color: #d4edda;
+        }
+
+        .line-comparison.mismatch {
+            background-color: #f8d7da;
+        }
+
+        .line-comparison span {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .line-comparison pre {
+            margin: 2px 0;
+            padding: 2px 5px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .line-comparison .expected {
+            color: #28a745;
+        }
+
+        .line-comparison .actual {
+            color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar">
+        <a href="#">Student EduFlow</a>
+        <a class="home" href="./student.html">Home
+            🏠︎
+        </a>
+        <span class="email"></span>
+        <a style="font-size: 20px;" href="#">Support</a>
+        <button class="logout-btn" onclick="window.location.href='index.html'">Logout</button>
+    </div>
+
+    <div class="container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="question-section">
+                <h2 id="question-title">Question Title</h2>
+                <div id="question-description"></div>
+            </div>
+            <div class="test-cases">
+                <h3>Test Cases</h3>
+                <div id="test-cases-container"></div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="editor-controls">
+                <select id="language-select">
+                    <option value="cpp">C++</option>
+                    <option value="c">C</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                </select>
+                <button id="run-btn">Run Code</button>
+                <button id="submit-btn">Submit</button>
+                <button id="reset-btn">Reset</button>
+                <button id="next-btn">Next Question</button>
+            </div>
+            <div id="editor-container"></div>
+            <div class="output-section">
+                <div class="output-tabs">
+                    <button class="tab-btn active" data-tab="output">Output</button>
+                    <button class="tab-btn" data-tab="test-results">Test Results</button>
+                </div>
+                <div id="output" class="tab-content active"></div>
+                <div id="test-results" class="tab-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script>
+
+        const emailSpan = document.querySelector(".email"); // Select the email span
+
+        // Set the email from local storage
+        const email = localStorage.getItem('email'); // Assuming the email is stored with the key 'email'
+        if (email) {
+            emailSpan.textContent = email; // Set the email span text
+        } else {
+            emailSpan.textContent = "Email not found"; // Fallback if email is not in local storage
+        }
+
+        let editor;
+        let currentTask = null;
+        let compilerStatus = {};
+        let twotestcases = false;
+
+        // Initialize CodeMirror editor
+        document.addEventListener('DOMContentLoaded', async () => {
+            editor = CodeMirror(document.getElementById('editor-container'), {
+                mode: 'text/x-c++src',
+                theme: 'monokai',
+                lineNumbers: true,
+                autoCloseBrackets: true,
+                matchBrackets: true,
+                indentUnit: 4,
+                tabSize: 4,
+                indentWithTabs: true,
+                lineWrapping: true
+            });
+
+            // Set initial size
+            editor.setSize('100%', '100%');
+
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const taskId = urlParams.get('taskId');
+                const response = await fetch('http://localhost:3000/api/get-latest-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Username:email, taskId:taskId })
+                });
+
+                const data = await response.json();
+                console.log("data:",data);
+                if (data.success) {
+                    editor.setValue(data.code); // Set fetched code in CodeMirror
+                    console.log(data.code);
+                    document.getElementById('language-select').value = data.language; // Set language dropdown
+                    editor.setOption("mode", getModeForLanguage(data.language)); // Update editor mode
+                } else {
+                    console.warn("No code found:", data.message);
+                }
+            } catch (error) {
+                console.error("Error fetching code:", error);
+            }
+
+            // Function to get CodeMirror mode based on selected language
+            function getModeForLanguage(language) {
+                const modes = {
+                    javascript: "javascript",
+                    python: "python",
+                    java: "text/x-java",
+                    cpp: "text/x-c++src",
+                    html: "text/html"
+                };
+                return modes[language] || "plaintext"; // Default to plaintext if language not found
+            }
+
+            // Check compiler status
+            try {
+                const response = await fetch('http://localhost:3000/api/compiler-status');
+                compilerStatus = await response.json();
+                updateCompilerStatus();
+            } catch (error) {
+                console.error('Error checking compiler status:', error);
+            }
+
+            // Setup event listeners
+            document.getElementById('language-select').addEventListener('change', handleLanguageChange);
+            document.getElementById('run-btn').addEventListener('click', runCode);
+            document.getElementById('submit-btn').addEventListener('click', submitSolution);
+            document.getElementById('reset-btn').addEventListener('click', resetEditor);
+            document.getElementById('next-btn').addEventListener('click', fetchTask);
+
+            // Setup tab switching
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => switchTab(button.dataset.tab));
+            });
+
+            // Load initial task
+            fetchTask();
+        });
+
+        function updateCompilerStatus() {
+            const select = document.getElementById('language-select');
+            const options = select.options;
+            for (let i = 0; i < options.length; i++) {
+                const language = options[i].value;
+                const isAvailable = (language === 'python' && compilerStatus.python) ||
+                    ((language === 'c' || language === 'cpp') && compilerStatus.gcc) ||
+                    (language === 'java' && compilerStatus.java);
+                if (!isAvailable) {
+                    options[i].disabled = true;
+                    options[i].text += ' (not available)';
+                }
+            }
+        }
+
+        function handleLanguageChange(event) {
+            const language = event.target.value;
+            const modeMap = {
+                'cpp': 'text/x-c++src',
+                'c': 'text/x-csrc',
+                'java': 'text/x-java',
+                'python': 'python'
+            };
+            editor.setOption('mode', modeMap[language]);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        async function fetchTask() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const taskId = urlParams.get('taskId');
+
+                console.log("Task ID:", taskId); // Use this taskId to fetch or display the relevant task data
+                const response = await fetch(`http://localhost:3000/api/task?id=${taskId}`);
+                currentTask = await response.json();
+                console.log(currentTask);
+                document.getElementById('question-title').textContent = currentTask.question;
+                document.getElementById('question-description').innerHTML = currentTask.description;
+                const testCasesHtml = `
+            <div class="test-case-display">
+                <strong>Test Case 1:</strong>
+                <pre>Input: ${currentTask.testcase1_input}</pre>
+                <pre>Expected Output: ${currentTask.testcase1_output}</pre>
+            </div>
+            <div class="test-case-display">
+                <strong>Test Case 2:</strong>
+                <pre>Input: ${currentTask.testcase2_input}</pre>
+                <pre>Expected Output: ${currentTask.testcase2_output}</pre>
+            </div>
+        `;
+                document.getElementById('test-cases-container').innerHTML = testCasesHtml;
+            } catch (error) {
+                console.error('Error fetching task:', error);
+            }
+        }
+
+        async function runCode() {
+            const code = editor.getValue();
+            const language = document.getElementById('language-select').value;
+
+            // Show loading state
+            document.getElementById('output').textContent = 'Running code...';
+            document.getElementById('test-results').textContent = 'Running tests...';
+
+            try {
+                // Run with first test case
+                const response1 = await fetch('http://localhost:3000/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, language, input: currentTask.testcase1_input })
+                });
+                const result1 = await response1.json();
+
+                // Run with second test case
+                const response2 = await fetch('http://localhost:3000/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, language, input: currentTask.testcase2_input })
+                });
+                const result2 = await response2.json();
+
+                // Display results
+                const testResults = [
+                    {
+                        testNumber: 1,
+                        passed: result1.output.trim() === currentTask.testcase1_output.trim(),
+                        input: currentTask.testcase1_input,
+                        expectedOutput: currentTask.testcase1_output,
+                        actualOutput: result1.output,
+                        error: result1.error,
+                        comparison: compareOutputs(currentTask.testcase1_output, result1.output)
+                    },
+                    {
+                        testNumber: 2,
+                        passed: result2.output.trim() === currentTask.testcase2_output.trim(),
+                        input: currentTask.testcase2_input,
+                        expectedOutput: currentTask.testcase2_output,
+                        actualOutput: result2.output,
+                        error: result2.error,
+                        comparison: compareOutputs(currentTask.testcase2_output, result2.output)
+                    }
+                ];
+
+                console.log(testResults);
+                if (testResults[0].passed && testResults[1].passed) {
+                    twotestcases = true;
+                } else {
+                    twotestcases = false;
+                }
+                console.log(testResults[0].passed);
+                displayTestResults(testResults);
+
+                // Show first test case output in output tab
+                const outputDiv = document.getElementById('output');
+                if (result1.error) {
+                    outputDiv.innerHTML = `<pre class="error">${result1.error}</pre>`;
+                } else {
+                    outputDiv.innerHTML = `<pre>${result1.output}</pre>`;
+                }
+            } catch (error) {
+                console.log('Error running code:', error);
+                document.getElementById('output').innerHTML = `<pre class="error">Error running code: ${error.message}</pre>`;
+                document.getElementById('test-results').innerHTML = `<pre class="error">Error running tests: ${error.message}</pre>`;
+            }
+        }
+
+        function compareOutputs(expected, actual) {
+            const expectedLines = expected.trim().split('\n');
+            const actualLines = actual.trim().split('\n');
+            return expectedLines.map((expected, i) => {
+                const actual = actualLines[i] || '';
+                return { expected, actual, matches: expected === actual };
+            });
+        }
+
+        function displayTestResults(results) {
+            const resultsHtml = results.map(result => `
+        <div class="test-case ${result.passed ? 'passed' : 'failed'}">
+            <h4>Test Case ${result.testNumber}: ${result.passed ? 'Passed ✓' : 'Failed ✗'}</h4>
+            <pre>Input: ${result.input}</pre>
+            <pre>Expected Output: ${result.expectedOutput}</pre>
+            <pre>Actual Output: ${result.actualOutput}</pre>
+            ${result.error ? `<pre class="error">Error: ${result.error}</pre>` : ''}
+            ${!result.passed && result.comparison ? `
+                <div class="comparison">
+                    <h5>Detailed Comparison:</h5>
+                    ${result.comparison.map((line, i) => `
+                        <div class="line-comparison ${line.matches ? 'match' : 'mismatch'}">
+                            <span>Line ${i + 1}:</span>
+                            <pre class="expected">Expected: "${line.expected}"</pre>
+                            <pre class="actual">Actual: "${line.actual}"</pre>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+            document.getElementById('test-results').innerHTML = resultsHtml;
+        }
+
+        async function submitSolution() {
+            const code = editor.getValue();
+            const language = document.getElementById('language-select').value;
+
+            // Run code first to check if all tests pass
+            await runCode();
+
+
+
+            try {
+                const email = localStorage.getItem('email');
+                const response = await fetch('http://localhost:3000/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ taskId: currentTask.id, code, language, passed: twotestcases, Username: email })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Solution submitted successfully!');
+                } else {
+                    alert('Failed to submit solution: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error submitting solution: ' + error.message);
+            }
+        }
+
+        function resetEditor() {
+            editor.setValue('');
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('test-results').innerHTML = '';
+            switchTab('output');
+            twotestcases = false; // Reset the test cases flag
+        }
+
+        async function resetDatabase() {
+            try {
+                const response = await fetch('http://localhost:3000/api/reset', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Database reset successfully!');
+                } else {
+                    alert('Failed to reset database: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error resetting database: ' + error.message);
+            }
+        }
+    </script>
+</body>
+
+</html>

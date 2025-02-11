@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Exam</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #002b5b;
+            color: white;
+            padding: 10px 20px;
+            font-style: italic;
+            font-size: 30px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: white;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        .navbar a.home {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            text-decoration: underline;
+            font-size: 20px;
+        }
+
+        .navbar .email {
+            margin-right: auto;
+            margin-left: 20px;
+            font-style: normal;
+            font-size: 20px;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s ease-in-out;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+                0 0 20px rgba(255, 255, 255, 0.6),
+                0 0 30px rgba(255, 255, 255, 0.4);
+        }
+
+        .logout-btn:hover {
+            background-color: #dc3545;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 1),
+                0 0 25px rgba(255, 255, 255, 0.9),
+                0 0 35px rgba(255, 255, 255, 0.7);
+        }
+
+        .question-nav {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            bottom: 0;
+            width: 60px;
+            background: #002b5b;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .question-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            background: white;
+            color: #002b5b;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .question-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .question-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .question-btn.attempted {
+            background: #ffd700;
+            color: #002b5b;
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+            margin-left: 60px;
+            background-color: #f5f5f5;
+        }
+
+        .left-panel {
+            width: 40%;
+            padding: 20px;
+            background-color: white;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+        }
+
+        .right-panel {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-section {
+            margin-bottom: 20px;
+        }
+
+        .question-section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .test-cases {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .editor-controls {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+
+        #language-select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        #language-select option:disabled {
+            color: #999;
+            font-style: italic;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #editor-container {
+            flex-grow: 1;
+        }
+
+        .CodeMirror {
+            height: 100% !important;
+            font-size: 14px;
+        }
+
+        .output-section {
+            height: 200px;
+            background-color: white;
+            border-top: 1px solid #ddd;
+        }
+
+        .output-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            color: #4CAF50;
+            border-bottom: 2px solid #4CAF50;
+            border-right: 2px solid #4CAF50;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 15px;
+            height: calc(100% - 37px);
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #output,
+        #test-results {
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        .test-case {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .test-case pre {
+            background-color: #f5f5f5;
+            padding: 8px;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .passed {
+            border-left: 4px solid #28a745;
+        }
+
+        .failed {
+            border-left: 4px solid #dc3545;
+        }
+
+        .comparison {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .line-comparison {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .line-comparison.match {
+            background-color: #d4edda;
+        }
+
+        .line-comparison.mismatch {
+            background-color: #f8d7da;
+        }
+
+        .line-comparison span {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .line-comparison pre {
+            margin: 2px 0;
+            padding: 2px 5px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .line-comparison .expected {
+            color: #28a745;
+        }
+
+        .line-comparison .actual {
+            color: #dc3545;
+        }
+
+        .timer {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: #002b5b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .timer.warning {
+            background: #ffd700;
+            color: #002b5b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="#">Student EduFlow</a>
+        <span id="exam-info"></span>
+        <span class="email"></span>
+        <div class="timer" id="timer">Time Remaining: --:--:--</div>
+    </div>
+
+    <div class="question-nav" id="question-nav">
+        <!-- Question buttons will be added here dynamically -->
+    </div>
+
+    <div class="container">
+        <div class="left-panel">
+            <div class="question-section">
+                <h2 id="question-title">Question Title</h2>
+                <div id="question-description"></div>
+            </div>
+            <div class="test-cases">
+                <h3>Test Cases</h3>
+                <div id="test-cases-container"></div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="editor-controls">
+                <select id="language-select">
+                    <option value="cpp">C++</option>
+                    <option value="c">C</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                </select>
+                <button id="run-btn">Run Code</button>
+                <button id="submit-btn">Submit</button>
+            </div>
+            <div id="editor-container"></div>
+            <div class="output-section">
+                <div class="output-tabs">
+                    <button class="tab-btn active" data-tab="output">Output</button>
+                    <button class="tab-btn" data-tab="test-results">Test Results</button>
+                </div>
+                <div id="output" class="tab-content active"></div>
+                <div id="test-results" class="tab-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script>
+        let editor;
+        let examData = null;
+        let currentQuestionIndex = 0;
+        let attemptedQuestions = new Set();
+        let examEndTime = null;
+        let twotestcases = false;
+
+        const emailSpan = document.querySelector(".email");
+        const email = localStorage.getItem('email');
+        if (email) {
+            emailSpan.textContent = email;
+        } else {
+            emailSpan.textContent = "Email not found";
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            editor = CodeMirror(document.getElementById('editor-container'), {
+                mode: 'text/x-c++src',
+                theme: 'monokai',
+                lineNumbers: true,
+                autoCloseBrackets: true,
+                matchBrackets: true,
+                indentUnit: 4,
+                tabSize: 4,
+                indentWithTabs: true,
+                lineWrapping: true
+            });
+
+            editor.setSize('100%', '100%');
+            await initializeExam();
+
+            document.getElementById('language-select').addEventListener('change', handleLanguageChange);
+            document.getElementById('run-btn').addEventListener('click', runCode);
+            document.getElementById('submit-btn').addEventListener('click', submitSolution);
+
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => switchTab(button.dataset.tab));
+            });
+        });
+
+        async function initializeExam() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const examId = urlParams.get('taskId');
+                
+                const response = await fetch(`http://localhost:3000/api/exam/${examId}`);
+                examData = await response.json();
+                console.log('Exam Data:', examData);
+                document.getElementById('exam-info').textContent = 
+                    `${examData.examName} - ${examData.branch} Year ${examData.year}`;
+                
+// Convert examTime (in minutes) to milliseconds and set the end time
+const examDurationMs = parseInt(examData.examTime) * 60 * 1000;
+                examEndTime = new Date(Date.now() + examDurationMs);
+                startTimer();
+                
+                createQuestionNav();
+                loadQuestion(0);
+
+                // Load last saved code if exists
+                try {
+                    const codeResponse = await fetch('http://localhost:3000/api/get-latest-code', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            Username: email, 
+                            examId: examId,
+                            questionId: examData.questions[0].id 
+                        })
+                    });
+
+                    const data = await codeResponse.json();
+                    if (data.success) {
+                        editor.setValue(data.code);
+                        document.getElementById('language-select').value = data.language;
+                        editor.setOption("mode", getModeForLanguage(data.language));
+                    }
+                } catch (error) {
+                    console.error("Error fetching saved code:", error);
+                }
+            } catch (error) {
+                console.error('Error initializing exam:', error);
+            }
+        }
+
+        function createQuestionNav() {
+            const nav = document.getElementById('question-nav');
+            examData.questions.forEach((_, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'question-btn';
+                btn.textContent = index + 1;
+                btn.onclick = () => loadQuestion(index);
+                nav.appendChild(btn);
+            });
+        }
+
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const question = examData.questions[index];
+            
+            document.getElementById('question-title').textContent = 
+                `Question ${index + 1}: ${question.question}`;
+            document.getElementById('question-description').innerHTML = 
+                question.description;
+            
+            const testCasesHtml = question.testCases.map((testCase, i) => `
+                <div class="test-case-display">
+                    <strong>Test Case ${i + 1}:</strong>
+                    <pre>Input: ${testCase.input}</pre>
+                    <pre>Expected Output: ${testCase.output}</pre>
+                </div>
+            `).join('');
+            document.getElementById('test-cases-container').innerHTML = testCasesHtml;
+            
+            document.querySelectorAll('.question-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        function startTimer() {
+            function updateTimer() {
+                const now = new Date();
+                const timeLeft = examEndTime - now;
+                console.log(timeLeft)
+                if (timeLeft <= 0) {
+                    submitExam();
+                    return;
+                }
+                
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                const timerElement = document.getElementById('timer');
+                timerElement.textContent = 
+                    `Time Remaining: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
+                if (timeLeft < 300000) {
+                    timerElement.classList.add('warning');
+                }
+            }
+            
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        function handleLanguageChange(event) {
+            const language = event.target.value;
+            const modeMap = {
+                'cpp': 'text/x-c++src',
+                'c': 'text/x-csrc',
+                'java': 'text/x-java',
+                'python': 'python'
+            };
+            editor.setOption('mode', modeMap[language]);
+        }
+
+        function getModeForLanguage(language) {
+            const modes = {
+                javascript: "javascript",
+                python: "python",
+                java: "text/x-java",
+                cpp: "text/x-c++src",
+                c: "text/x-csrc"
+            };
+            return modes[language] || "plaintext";
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        async function runCode() {
+            const code = editor.getValue();
+            const language = document.getElementById('language-select').value;
+            const question = examData.questions[currentQuestionIndex];
+
+            document.getElementById('output').textContent = 'Running code...';
+            document.getElementById('test-results').textContent = 'Running tests...';
+
+            try {
+                const results = await Promise.all(question.testCases.map(async (testCase, index) => {
+                    const response = await fetch('http://localhost:3000/api/run', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code, language, input: testCase.input })
+                    });
+                    const result = await response.json();
+                    return {
+                        testNumber: index + 1,
+                        passed: result.output.trim() === testCase.output.trim(),
+                        input: testCase.input,
+                        expectedOutput: testCase.output,
+                        actualOutput: result.output,
+                        error: result.error,
+                        comparison: compareOutputs(testCase.output, result.output)
+                    };
+                }));
+
+                twotestcases = results.every(result => result.passed);
+                displayTestResults(results);
+
+                const outputDiv = document.getElementById('output');
+                if (results[0].error) {
+                    outputDiv.innerHTML = `<pre class="error">${results[0].error}</pre>`;
+                } else {
+                    outputDiv.innerHTML = `<pre>${results[0].actualOutput}</pre>`;
+                }
+            } catch (error) {
+                console.error('Error running code:', error);
+                document.getElementById('output').innerHTML = `<pre class="error">Error running code: ${error.message}</pre>`;
+                document.getElementById('test-results').innerHTML = `<pre class="error">Error running tests: ${error.message}</pre>`;
+            }
+        }
+
+        function compareOutputs(expected, actual) {
+            const expectedLines = expected.trim().split('\n');
+            const actualLines = actual.trim().split('\n');
+            return expectedLines.map((expected, i) => {
+                const actual = actualLines[i] || '';
+                return { expected, actual, matches: expected === actual };
+            });
+        }
+
+        function displayTestResults(results) {
+            const resultsHtml = results.map(result => `
+                <div class="test-case ${result.passed ? 'passed' : 'failed'}">
+                    <h4>Test Case ${result.testNumber}: ${result.passed ? 'Passed ✓' : 'Failed ✗'}</h4>
+                    <pre>Input: ${result.input}</pre>
+                    <pre>Expected Output: ${result.expectedOutput}</pre>
+                    <pre>Actual Output: ${result.actualOutput}</pre>
+                    ${result.error ? `<pre class="error">Error: ${result.error}</pre>` : ''}
+                    ${!result.passed && result.comparison ? `
+                        <div class="comparison">
+                            <h5>Detailed Comparison:</h5>
+                            ${result.comparison.map((line, i) => `
+                                <div class="line-comparison ${line.matches ? 'match' : 'mismatch'}">
+                                    <span>Line ${i + 1}:</span>
+                                    <pre class="expected">Expected: "${line.expected}"</pre>
+                                    <pre class="actual">Actual: "${line.actual}"</pre>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            document.getElementById('test-results').innerHTML = resultsHtml;
+        }
+
+        async function submitSolution() {
+            const code = editor.getValue();
+            const language = document.getElementById('language-select').value;
+            
+            await runCode();
+            
+            if (twotestcases) {
+                attemptedQuestions.add(currentQuestionIndex);
+                document.querySelectorAll('.question-btn')[currentQuestionIndex]
+                    .classList.add('attempted');
+            }
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/submitexam', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        examId: examData.id,
+                        questionId: examData.questions[currentQuestionIndex].id,
+                        code,
+                        language,
+                        passed: twotestcases,
+                        Username: email
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('Solution submitted successfully!');
+                } else {
+                    alert('Failed to submit solution: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error submitting solution: ' + error.message);
+            }
+        }
+
+        async function submitExam() {
+            try {
+                const response = await fetch('http://localhost:3000/api/submit-exam', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        examId: examData.id,
+                        Username: email,
+                        attemptedQuestions: Array.from(attemptedQuestions)
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('Exam submitted successfully!');
+                    window.location.href = 'student.html';
+                } else {
+                    alert('Failed to submit exam: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error submitting exam: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
