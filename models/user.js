@@ -31,7 +31,7 @@ const User = sequelize.define('User ', {
     },
     year: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
     },
     resetToken: {
         type: DataTypes.STRING,

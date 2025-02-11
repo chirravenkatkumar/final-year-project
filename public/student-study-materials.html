@@ -127,6 +127,7 @@
                 }
 
                 try {
+                    console.log(studentBranch, studentYear)
                     const response = await fetch(`${apiBaseUrl}?branch=${studentBranch}&year=${studentYear}`);
                     const data = await response.json();
 

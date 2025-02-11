@@ -13,7 +13,13 @@ const fs = require('fs').promises;
 const app = express();
 const path = require('path');
 const Submission = require('./models/submission');
-
+const multer = require('multer');
+const StudyMaterial = require('./models/studymaterials');
+const Exam = require("./models/Exam");
+const temp = require('temp');
+const { promisify } = require('util');
+const execAsync = promisify(exec);
+const ExamSubmission = require('./models/examsubmission');
 
 dotenv.config(); // Load environment variables
 
@@ -22,7 +28,8 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('./public'));
+app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
 
 // JWT Secret Key (moved to environment variable)
 const JWT_SECRET = 'Nani@99128**';
@@ -110,7 +117,7 @@ app.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
-        res.json({ message: 'Login successful', token, branch: user.branch, email: user.email, role: user.role });
+        res.json({ message: 'Login successful', token, branch: user.branch, email: user.email, role: user.role, year: user.year });
     } catch (error) {
         console.error('Error logging in:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -575,6 +582,120 @@ async function cleanup(filename, language) {
         }
     }
 }
+
+
+
+// Materials Source 
+
+// Multer Configuration for File Uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage });
+
+// API Route to Upload File
+app.post('/api/upload', upload.single('fileUpload'), async (req, res) => {
+    try {
+        const { branch, year, subject, fileName } = req.body;
+        const filePath = req.file ? req.file.path : '';
+
+        if (!filePath) {
+            return res.status(400).json({ message: "File upload failed!" });
+        }
+
+        const newMaterial = await StudyMaterial.create({
+            branch,
+            year,
+            subject,
+            fileName,
+            filePath
+        });
+
+        res.status(201).json({
+            message: "File uploaded successfully!",
+            studyMaterial: newMaterial
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error", error });
+    }
+});
+
+
+// Route: Fetch Study Materials Based on Branch, Year, Subject
+app.get('/api/materials', async (req, res) => {
+    const { branch, year } = req.query;
+    if (!branch || !year) {
+        return res.status(400).json({ error: 'Branch and year are required.' });
+    }
+
+    try {
+        const materials = await StudyMaterial.findAll({ where: { branch, year} });
+        console.log(materials);
+        res.json(materials);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching materials.' });
+    }
+});
+
+// Route: View File in Browser
+app.get('/api/materials/view/:id', async (req, res) => {
+    try {
+        const material = await StudyMaterial.findByPk(req.params.id);
+        if (!material) {
+            return res.status(404).json({ error: 'Material not found' });
+        }
+
+        const filePath = material.filePath;
+        const fileExt = path.extname(filePath).toLowerCase();
+
+        // Set Content-Type based on file extension
+        const mimeTypes = {
+            '.pdf': 'application/pdf',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.txt': 'text/plain',
+            '.html': 'text/html'
+        };
+
+        const contentType = mimeTypes[fileExt] || 'application/octet-stream';
+        res.setHeader('Content-Type', contentType);
+
+        // Send the file to be viewed in the browser
+        res.sendFile(path.resolve(filePath));
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error viewing file.' });
+    }
+});
+
+// Route: Download File
+app.get('/api/materials/download/:id', async (req, res) => {
+    try {
+        const material = await StudyMaterial.findByPk(req.params.id);
+        if (!material) {
+            return res.status(404).json({ error: 'Material not found' });
+        }
+
+        const filePath = material.filePath; // Full path of the file
+        const fileExt = path.extname(filePath); // Extract file extension
+        const fileName = `${material.fileName}${fileExt}`; // Ensure filename has an extension
+
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        res.download(filePath, fileName);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error downloading file.' });
+    }
+});
 
 
 // Start Server

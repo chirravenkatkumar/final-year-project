@@ -34,7 +34,7 @@ const Task = sequelize.define('Task', {
     },
     year: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
         },
     branch: {
         type: DataTypes.STRING,
