@@ -210,7 +210,7 @@ app.get('/dashboard', verifyToken, (req, res) => {
 
 // Task Management Routes using Sequelize ORM
 app.post('/api/tasks', async (req, res) => {
-    const { question, description, testcase1, testcase2, branch, subject } = req.body;
+    const { question, description, testcase1, testcase2, branch, subject,year } = req.body;
 
     try {
         // Create a new task using Sequelize
@@ -221,6 +221,7 @@ app.post('/api/tasks', async (req, res) => {
             testcase1_output: testcase1.output,
             testcase2_input: testcase2.input,
             testcase2_output: testcase2.output,
+            year,
             branch,
             subject,
         });
@@ -467,7 +468,7 @@ app.post('/api/submit', async (req, res) => {
 
     try {
         // Check if a submission already exists for the given Username and taskId
-        let submission = await Submission.findOne({ taskId, Username });
+        let submission = await Submission.findOne({ where: {taskId, Username} });
 
         if (submission) {
             // Update the existing submission

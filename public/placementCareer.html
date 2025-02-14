@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placement Training System - Student Panel</title>
+  <style>
+    /* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+header {
+  background-color: #333;
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+nav ul li {
+  display: inline;
+  margin: 0 10px;
+}
+
+nav ul li a {
+  color: #fff;
+  text-decoration: none;
+}
+
+main {
+  padding: 20px;
+}
+
+section {
+  margin-bottom: 40px;
+}
+
+h2 {
+  color: #333;
+}
+
+.stats, .materials, .job-listings {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card, .material-card, .job-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1 1 calc(33.333% - 40px);
+}
+
+button {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #555;
+}
+
+.hidden {
+  display: none;
+}
+
+footer {
+  text-align: center;
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Placement Training System</h1>
+    <nav>
+      <ul>
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#training">Training Materials</a></li>
+        <li><a href="#resume">Resume Builder</a></li>
+        <li><a href="#jobs">Jobs & Internships</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Dashboard Section -->
+    <section id="dashboard">
+      <h2>Dashboard</h2>
+      <div class="stats">
+        <div class="stat-card">
+          <h3>Completed Modules</h3>
+          <p id="completed-modules">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Applied Jobs</h3>
+          <p id="applied-jobs">0</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Training Materials Section -->
+    <section id="training">
+      <h2>Training Materials</h2>
+      <div class="materials">
+        <div class="material-card">
+          <h3>Aptitude</h3>
+          <button onclick="markCompleted('aptitude')">Mark as Completed</button>
+        </div>
+        <div class="material-card">
+          <h3>Technical Skills</h3>
+          <button onclick="markCompleted('technical')">Mark as Completed</button>
+        </div>
+        <div class="material-card">
+          <h3>Soft Skills</h3>
+          <button onclick="markCompleted('soft-skills')">Mark as Completed</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resume Builder Section -->
+    <section id="resume">
+      <h2>Resume Builder</h2>
+      <form id="resume-form">
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+
+        <label for="skills">Skills:</label>
+        <textarea id="skills" rows="4" required></textarea>
+
+        <label for="experience">Experience:</label>
+        <textarea id="experience" rows="4" required></textarea>
+
+        <button type="submit">Generate Resume</button>
+      </form>
+      <div id="resume-output" class="hidden">
+        <h3>Your Resume</h3>
+        <p><strong>Name:</strong> <span id="output-name"></span></p>
+        <p><strong>Email:</strong> <span id="output-email"></span></p>
+        <p><strong>Skills:</strong> <span id="output-skills"></span></p>
+        <p><strong>Experience:</strong> <span id="output-experience"></span></p>
+      </div>
+    </section>
+
+    <!-- Jobs & Internships Section -->
+    <section id="jobs">
+      <h2>Jobs & Internships</h2>
+      <div class="job-listings">
+        <div class="job-card">
+          <h3>Software Engineer</h3>
+          <p>Company: Tech Corp</p>
+          <p>Deadline: 2023-12-31</p>
+          <button onclick="applyJob('Software Engineer')">Apply</button>
+        </div>
+        <div class="job-card">
+          <h3>Data Analyst</h3>
+          <p>Company: Data Inc</p>
+          <p>Deadline: 2023-11-30</p>
+          <button onclick="applyJob('Data Analyst')">Apply</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2023 Placement Training System</p>
+  </footer>
+
+  <script>
+    // Track completed modules and applied jobs
+let completedModules = 0;
+let appliedJobs = 0;
+
+// Mark a training module as completed
+function markCompleted(module) {
+  completedModules++;
+  document.getElementById('completed-modules').textContent = completedModules;
+  alert(`You completed the ${module} module!`);
+}
+
+// Apply for a job
+function applyJob(jobTitle) {
+  appliedJobs++;
+  document.getElementById('applied-jobs').textContent = appliedJobs;
+  alert(`You applied for the ${jobTitle} position!`);
+}
+
+// Resume Builder
+document.getElementById('resume-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  // Get form values
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const skills = document.getElementById('skills').value;
+  const experience = document.getElementById('experience').value;
+
+  // Display resume
+  document.getElementById('output-name').textContent = name;
+  document.getElementById('output-email').textContent = email;
+  document.getElementById('output-skills').textContent = skills;
+  document.getElementById('output-experience').textContent = experience;
+
+  // Show resume output
+  document.getElementById('resume-output').classList.remove('hidden');
+});
+  </script>
+</body>
+</html>
