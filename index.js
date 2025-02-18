@@ -66,7 +66,6 @@ const sendOTP = async (email, otp) => {
         };
 
         await transporter.sendMail(mailOptions);
-        console.log(`OTP sent to ${email}`);
     } catch (error) {
         console.error(`Error sending OTP email to ${email}:`, error.message);
         throw error;
@@ -301,8 +300,6 @@ app.get('/api/subjects', async (req, res) => {
 app.get('/api/tasks', async (req, res) => {
     const subject = req.query.subject;
 
-    console.log(`Subject received: ${subject}`); // Debug log
-
     try {
         if (!subject) {
             // Fetch all distinct subjects
@@ -318,7 +315,6 @@ app.get('/api/tasks', async (req, res) => {
             attributes: ['id', 'question'],
         });
 
-        console.log("Tasks found:", tasks.values); // Debug log
         res.json(tasks);
     } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -646,7 +642,6 @@ app.get('/api/materials', async (req, res) => {
 
     try {
         const materials = await StudyMaterial.findAll({ where: { branch, year } });
-        console.log(materials);
         res.json(materials);
     } catch (error) {
         console.error(error);
