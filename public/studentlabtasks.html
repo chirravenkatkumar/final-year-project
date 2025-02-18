@@ -277,7 +277,6 @@
         </div>
 
         <div id="task-section" class="section hidden">
-            <h2>Tasks Sub name put here</h2>
             <button class="print-btn">Print Lab Record</button>
             <div class="table-container">
                 <table>
@@ -295,28 +294,11 @@
             </div>
         </div>
 
-        <div id="task-detail-section" class="section hidden">
-            <h2>Task Details</h2>
-            <p><strong>Question:</strong> <span id="task-question"></span></p>
-            <p><strong>Description:</strong> <span id="task-description"></span></p>
-            <p><strong>Test Cases:</strong> <span id="task-testcases"></span></p>
-            <label for="languageSelect">Choose Language:</label>
-            <select id="languageSelect">
-                <option value="c">C</option>
-                <option value="cpp">C++</option>
-                <option value="python">Python</option>
-                <option value="java">Java</option>
-            </select>
-            <div id="editor"></div>
-            <div id="output"></div>
-            <div class="button-container">
-                <button id="run">Run</button>
-                <button id="reset">Reset</button>
-                <button id="submit">Submit</button>
-            </div>
-        </div>
+
 
         <script>
+
+
             document.addEventListener("DOMContentLoaded", async () => {
                 const subjectSection = document.getElementById("subject-section");
                 const subjectsContainer = document.getElementById("subjects-container");
@@ -409,7 +391,7 @@
                             <td>${task.id}</td>
                             <td>${task.question}</td>
                             <td><button class="print-btn">🖨️</button></td>
-                            <td><button class="status-btn" data-id="${task.id}">Status</button></td>
+                            <td class="status-cell" data-id="${task.id}">❌</td>
                             <td><button class="task-btn" data-id="${task.id}">Open Question</button></td>
                         </tr>
                     `)
@@ -423,6 +405,30 @@
                         openCodeEditor(taskId);
                     });
                 });
+                const statusCells = document.querySelectorAll(".status-cell"); // Targeting cells instead of buttons
+    const email = localStorage.getItem('email');
+    statusCells.forEach(async (cell) => {
+        const taskId = cell.dataset.id;
+        console.log("Task ID:", taskId);
+        const Username = email; // Replace with the logged-in user's username dynamically
+
+        try {
+            const response = await fetch("http://localhost:3000/api/studentlabtasks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ taskId, Username }),
+            });
+
+            const data = await response.json();
+            if (data.status === "complete") {
+                cell.textContent = "✅";
+            } else {
+                cell.textContent = "❌";
+            }
+        } catch (error) {
+            console.error("Error fetching task status:", error);
+        }
+    });
             } else {
                 alert("Failed to load tasks.");
             }

@@ -7,7 +7,7 @@
     <title>Code Editor</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
-    <style>
+     <style>
         * {
             margin: 0;
             padding: 0;
@@ -598,8 +598,6 @@
             // Run code first to check if all tests pass
             await runCode();
 
-
-
             try {
                 const email = localStorage.getItem('email');
                 const response = await fetch('http://localhost:3000/api/submit', {
@@ -609,7 +607,13 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    alert('Solution submitted successfully!');
+                    Toastify({
+                text: "Solution submitted successfully!",
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "green"
+            }).showToast();
                 } else {
                     alert('Failed to submit solution: ' + result.error);
                 }
@@ -620,26 +624,25 @@
 
         function resetEditor() {
             editor.setValue('');
+            Toastify({
+                text: "Code Reset Successfully!",
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "green"
+            }).showToast();
             document.getElementById('output').innerHTML = '';
             document.getElementById('test-results').innerHTML = '';
             switchTab('output');
             twotestcases = false; // Reset the test cases flag
         }
 
-        async function resetDatabase() {
-            try {
-                const response = await fetch('http://localhost:3000/api/reset', { method: 'POST' });
-                const result = await response.json();
-                if (result.success) {
-                    alert('Database reset successfully!');
-                } else {
-                    alert('Failed to reset database: ' + result.error);
-                }
-            } catch (error) {
-                alert('Error resetting database: ' + error.message);
-            }
-        }
+
+        
     </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+       
 </body>
 
 </html>

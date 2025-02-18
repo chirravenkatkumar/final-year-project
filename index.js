@@ -233,6 +233,27 @@ app.post('/api/tasks', async (req, res) => {
     }
 });
 
+// status for studentlabtasks✅
+app.post('/api/studentlabtasks', async (req, res) => {
+    let status = "incomplete";
+    const { taskId, Username} = req.body;
+    try {
+        const task = await Submission.findOne({ where: { taskId, Username } });
+        if (task) {
+        // if passed column  in Submission table is true then status is complete
+
+        if (task.passed) {
+                status = "complete";
+            }
+
+        }
+        res.json({ status });
+    } catch (error) {
+        console.error('Error fetching submission:', error);
+        res.status(500).json({ message: 'Error fetching submission' });
+    }
+});
+
 
 // API Endpoints
 
@@ -495,19 +516,6 @@ app.post('/api/submit', async (req, res) => {
     }
 });
 
-// New endpoint for resetting the editor and clearing temporary files
-app.post('/api/reset', async (req, res) => {
-    try {
-        // Clear all temporary files
-        const files = await fs.readdir(__dirname);
-        const tempFiles = files.filter(file => file.startsWith('temp_'));
-        await Promise.all(tempFiles.map(file => fs.unlink(path.join(__dirname, file))));
-
-        res.json({ success: true, message: 'Reset successful' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
 
 // Helper functions
 async function runCode(filename, code, language, input) {
