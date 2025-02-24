@@ -361,19 +361,96 @@
             list-style-type: disc;
             padding-left: 40px;
         }
-        .checkbox-container {
-            margin: 20px 0;
-        }
-        .start-btn {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: none;
-        }
+/* Hide the default checkbox */
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/* Custom checkbox container */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: Arial, sans-serif;
+    user-select: none;
+}
+
+/* Create a custom checkbox */
+.checkbox-container label {
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
+
+/* Custom circular checkmark */
+.checkbox-container .checkmark {
+    position: relative;
+    width: 1.8em;
+    height: 1.8em;
+    background-color: #ccc;
+    border-radius: 50%;
+    transition: 0.4s;
+}
+
+/* Hover effect */
+.checkbox-container .checkmark:hover {
+    box-shadow: inset 10px 10px 10px #b3b3b3, inset -10px -10px 10px #ffffff;
+}
+
+/* When checked, change background color */
+.checkbox-container input:checked + .checkmark {
+    background-color: limegreen;
+    transform: rotateX(360deg);
+    box-shadow: none;
+}
+
+/* Hover effect when checked */
+.checkbox-container input:checked + .checkmark:hover {
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Create the checkmark/indicator */
+.checkbox-container .checkmark::after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Show the checkmark when checked */
+.checkbox-container input:checked + .checkmark::after {
+    display: block;
+    left: 50%;
+    top: 50%;
+    width: 0.25em;
+    height: 0.5em;
+    border: solid white;
+    border-width: 0 0.15em 0.15em 0;
+    box-shadow: 0.1em 0.1em 0 rgba(0, 0, 0, 0.3);
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.start-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
         .start-btn:disabled {
             background-color: gray;
             cursor: not-allowed;
@@ -474,9 +551,16 @@
         <li>➢ To avoid unwanted pop-ups, use of Ad Blocker is recommended.</li>
     </ul>
 
+    
+
     <div class="checkbox-container">
-        <input type="checkbox" id="agreeCheckbox"> I Agree to all and Continue
+        <label>
+            <input type="checkbox" id="agreeCheckbox">
+            <div class="checkmark"></div>
+        </label>
+        <span>I Agree to all and Continue</span>
     </div>
+
 
     <button class="start-btn" id="startExamBtn" disabled>Start Exam</button>
 </div>
